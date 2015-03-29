@@ -7,8 +7,8 @@
     <ProjectGuid>{70BA671B-4D9D-4751-AD12-758D20DF238F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CosmosConfig</RootNamespace>
-    <AssemblyName>CosmosConfig</AssemblyName>
+    <RootNamespace>CosmosConfigurator</RootNamespace>
+    <AssemblyName>CosmosConfigurator.Compiler</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -22,9 +22,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\ReleaseLib\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,9 +46,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CosmosConfiguratorCommand\CosmosConfiguratorCommand.csproj">
+    <ProjectReference Include="..\CosmosConfiguratorCommand\CommandProgram.csproj">
       <Project>{13e40bd0-7a77-4371-9065-8222afd6abdf}</Project>
-      <Name>CosmosConfiguratorCommand</Name>
+      <Name>CommandProgram</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
