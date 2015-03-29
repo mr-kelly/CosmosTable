@@ -12,9 +12,9 @@ namespace CosmosConfigurator
         public char[] Separators = new char[] { '\t' };
         public Action<string> OnExceptionEvent;
     }
+
     public class Reader : IEnumerable<Reader.RowInterator>, IDisposable
     {
-
         private readonly RowInterator _rowInteratorCache;
 
         private ReaderConfig _config;
