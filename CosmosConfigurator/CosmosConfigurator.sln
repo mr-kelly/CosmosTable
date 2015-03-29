@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosConfiguratorCommand", "CosmosConfiguratorCommand\CosmosConfiguratorCommand.csproj", "{13E40BD0-7A77-4371-9065-8222AFD6ABDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosConfiguratorCompiler", "CosmosConfiguratorCompiler\CosmosConfiguratorCompiler.csproj", "{70BA671B-4D9D-4751-AD12-758D20DF238F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosConfiguratorTest", "CosmosConfiguratorTest\CosmosConfiguratorTest.csproj", "{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13E40BD0-7A77-4371-9065-8222AFD6ABDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13E40BD0-7A77-4371-9065-8222AFD6ABDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13E40BD0-7A77-4371-9065-8222AFD6ABDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13E40BD0-7A77-4371-9065-8222AFD6ABDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70BA671B-4D9D-4751-AD12-758D20DF238F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70BA671B-4D9D-4751-AD12-758D20DF238F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70BA671B-4D9D-4751-AD12-758D20DF238F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70BA671B-4D9D-4751-AD12-758D20DF238F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
