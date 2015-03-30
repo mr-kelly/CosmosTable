@@ -200,17 +200,32 @@ namespace CosmosConfigurator
             return true;
         }
 
+        internal FieldInfo[] TabFields
+        {
+            get
+            {
+                return (from p in typeof(T).GetFields()
+                        from attribute in p.GetCustomAttributes()
+                        where attribute is TabColumnAttribute
+                        select p).ToArray();
+            }
+        }
+
+        internal PropertyInfo[] TabProperties
+        {
+            get
+            {
+                return (from p in typeof(T).GetProperties() from attribute in p.GetCustomAttributes() where attribute is TabColumnAttribute select p).ToArray();
+            }
+        }
+
         protected void AutoParse(TabRow tabRow, string[] cellStrs)
         {
             var type = tabRow.GetType();
-            var allFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var okFields = new List<FieldInfo>();
 
-            foreach (FieldInfo field in allFields)
+            foreach (FieldInfo field in TabFields)
             {
-                if (field.Name.StartsWith("_"))  // 筛掉
-                    continue;
-
                 if (!HasColumn(field.Name))
                 {
                     OnExeption("表{0} 找不到表头{1}", type.Name, field.Name);
@@ -223,11 +238,15 @@ namespace CosmosConfigurator
             {
                 var fieldName = field.Name;
                 var fieldType = field.FieldType;
-                var methodName = string.Format("Get_{0}", fieldType);
-                var method = type.GetMethod(methodName);
+                var methodName = string.Format("Get_{0}", fieldType.Name);
+                var method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
                 if (method != null)
                 {
-                    field.SetValue(tabRow, method.Invoke(tabRow, new object[] { }));
+                    var index = (from kv in Headers where kv.Value.HeaderName == fieldName select kv.Value.ColumnIndex).First();
+                    field.SetValue(tabRow, method.Invoke(tabRow, new object[]
+                    {
+                       cellStrs[index] , null
+                    }));
                 }
                 else
                 {

@@ -26,7 +26,7 @@ namespace CosmosConfigurator
         void CheckHeaders()
         {
             // 确保表头！
-            foreach (var prop in TabProperties)
+            foreach (var prop in TabFile.TabProperties)
             {
                 HeaderInfo headerInfo;
                 if (!TabFile.Headers.TryGetValue(prop.Name, out headerInfo))
@@ -35,7 +35,7 @@ namespace CosmosConfigurator
                 }
             }
 
-            foreach (var field in TabFields)
+            foreach (var field in TabFile.TabFields)
             {
                 HeaderInfo headerInfo;
                 if (!TabFile.Headers.TryGetValue(field.Name, out headerInfo))
@@ -48,25 +48,6 @@ namespace CosmosConfigurator
         public TabFileWriter(TabFile<T> tabFile)
         {
             TabFile = tabFile;
-        }
-
-        FieldInfo[] TabFields
-        {
-            get
-            {
-                return (from p in typeof (T).GetFields()
-                    from attribute in p.GetCustomAttributes()
-                    where attribute is TabColumnAttribute
-                    select p).ToArray();
-            }
-        }
-
-        PropertyInfo[] TabProperties
-        {
-            get
-            {
-                return (from p in typeof (T).GetProperties() from attribute in p.GetCustomAttributes() where attribute is TabColumnAttribute select p).ToArray();
-            }
         }
 
         // 将当前保存成文件
@@ -87,13 +68,13 @@ namespace CosmosConfigurator
             foreach (var kv in TabFile.Rows)
             {
                 var rowT = kv.Value;
-                foreach (var prop in TabProperties)
+                foreach (var prop in TabFile.TabProperties)
                 {
                     var retVal = prop.GetGetMethod().Invoke(rowT, new object[]{});
                     sb.Append(retVal);
                     sb.Append('\t');
                 }
-                foreach (var field in TabFields)
+                foreach (var field in TabFile.TabFields)
                 {
                     var retVal = field.GetValue(rowT);
                     sb.Append(retVal);

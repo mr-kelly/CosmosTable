@@ -32,6 +32,11 @@ namespace CosmosConfigurator
             }
         }
 
+        protected string Get_String(string value, string defaultValue)
+        {
+            return Get_string(value, defaultValue);
+        }
+
         protected string Get_string(string value, string defaultValue)
         {
             if (string.IsNullOrEmpty(value))
