@@ -2,7 +2,7 @@
 /// <summary>
 /// Auto Generate for Tab File: {{ TabFilePath }}
 /// </summary>
-public class {{ClassName}}Config : TabRow
+public partial class {{ClassName}}Config : TabRow
 {
 	public static readonly string TabFilePath = "{{ TabFilePath }}";
 	{% for field in Fields %}
