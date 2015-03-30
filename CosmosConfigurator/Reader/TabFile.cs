@@ -12,6 +12,11 @@ namespace CosmosConfigurator
         public string Content;
         public char[] Separators = new char[] { '\t' };
         public Action<string> OnExceptionEvent;
+
+        /// <summary>
+        /// 在记录PrimaryKey时，记录是否需要检查重复
+        /// </summary>
+        public bool CheckDupliactedPrimaryKey = true;
     }
 
     public class TabFile : TabFile<DefaultTabRow>
@@ -130,6 +135,9 @@ namespace CosmosConfigurator
             _colCount = firstLineSplitString.Length;  // 標題
 
             // 读取行内容
+            
+            T cachedNewObj = null;
+
             string sLine = "";
             int rowIndex = 1; // 从第1行开始
             while (sLine != null)
@@ -137,20 +145,35 @@ namespace CosmosConfigurator
                 sLine = oReader.ReadLine();
                 if (sLine != null)
                 {
-
                     string[] splitString1 = sLine.Split(_config.Separators, StringSplitOptions.None);
 
                     TabInfo[rowIndex] = splitString1;
 
-                    var newT = Rows[rowIndex] = new T();
+                    var newT = cachedNewObj ?? (cachedNewObj = new T());  // the New Object may not be used this time, so cache it!
                     newT.Parse(splitString1);
 
                     if (newT.PrimaryKey != null)
-                        PrimaryKey2Row[newT.PrimaryKey] = newT;
+                    {
+                        T oldT;
+                        if (!PrimaryKey2Row.TryGetValue(newT.PrimaryKey, out oldT))  // 原本不存在，使用new的，释放cacheNew，下次直接new
+                        {
+                            PrimaryKey2Row[newT.PrimaryKey] = newT;
+                            cachedNewObj = null; // release the Cache!
+                        }
+                        else  // 原本存在，使用old的， cachedNewObj(newT)因此残留, 留待下回合使用
+                        {
+                            // Check Duplicated Primary Key, 使用原来的，不使用新new出来的, 下回合直接用_cachedNewObj
+                            OnExeption("[Duplicated Primary Key]: {0}", oldT.PrimaryKey);
+                            newT = oldT;
+                        }
+                    }
+
+                    Rows[rowIndex] = newT;
 
                     rowIndex++;
                 }
             }
+
             return true;
         }
 
@@ -214,13 +237,13 @@ namespace CosmosConfigurator
             return Headers.ContainsKey(colName);
         }
 
-        private void OnExeption(string message)
+        private void OnExeption(string message, params object[] args)
         {
             if (_config.OnExceptionEvent == null)
-                throw new Exception(message);
+                throw new Exception(string.Format(message, args));
             else
             {
-                _config.OnExceptionEvent(message);
+                _config.OnExceptionEvent(string.Format(message, args));
             }
         }
 
