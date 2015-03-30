@@ -23,21 +23,39 @@ namespace CosmosConfigurator
         }
     }
 
-    public class CodeGentor
+    /// <summary>
+    /// 用来进行模板渲染
+    /// </summary>
+    public class RenderTemplateVars
     {
-        public string TableFilePath { get; set; }
+        public string TabFilePath { get; set; }
         public string ClassName { get; set; }
-        public List<Hash> Fields { get; set; } // column + type
+        public List<RenderFieldVars> FieldsInternal { get; set; } // column + type
+
+        public List<Hash> Fields
+        {
+            get { return (from f in FieldsInternal select Hash.FromAnonymousObject(f)).ToList(); }
+        } 
+
         public List<Hash> Columns2DefaultValus { get; set; } // column + Default Values
         public string PrimaryKey { get; set; }
 
-        public CodeGentor()
+        public RenderTemplateVars()
         {
-            Fields = new List<Hash>();
+            FieldsInternal = new List<RenderFieldVars>();
             Columns2DefaultValus = new List<Hash>();
         }
-
     }
+
+    public class RenderFieldVars
+    {
+        public int Index { get; set; }
+        public string Type { get; set; }
+        public string Name { get; set; }
+        public string DefaultValue { get; set; }
+        public string Comment { get; set; }
+    }
+
     public class CompilerConfig
     {
         public string ExportTabExt = ".bytes";
@@ -112,6 +130,10 @@ namespace CosmosConfigurator
             if (result.Tables.Count <= 0)
                 throw new InvalidExcelException("No Sheet!");
 
+
+            var renderVars = new RenderTemplateVars();
+            renderVars.FieldsInternal = new List<RenderFieldVars>();
+
             var sheet1 = result.Tables[0];
 
             var strBuilder = new StringBuilder();
@@ -136,11 +158,17 @@ namespace CosmosConfigurator
 
                 break;
             }
+            
+            // 获取注释行
+            var commentRow = hasStatementRow ? sheet1.Rows[1].ItemArray : sheet1.Rows[0].ItemArray;
+            var commentsOfColumns = new List<string>();
+            foreach (var cellVal in commentRow)
+            {
+                commentsOfColumns.Add(cellVal.ToString());
+            }
 
             // Header
             int colIndex = 0;
-            var codeGentor = new CodeGentor();
-
             foreach (DataColumn column in sheet1.Columns)
             {
                 var colNameStr = column.ColumnName.Trim();
@@ -187,17 +215,20 @@ namespace CosmosConfigurator
                             {
                                 if (attrs[2] == "pk")
                                 {
-                                    codeGentor.PrimaryKey = colNameStr;
+                                    renderVars.PrimaryKey = colNameStr;
                                 }
                             }
 
                         }
 
-                        codeGentor.Fields.Add(Hash.FromAnonymousObject(new
+                        renderVars.FieldsInternal.Add(new RenderFieldVars
                         {
+                            Index = colIndex,
                             Type = typeName,
                             Name = colNameStr,
-                        }));
+                            DefaultValue = defaultVal,
+                            Comment = commentsOfColumns[colIndex],
+                        });
                         //codeGentor.Columns2DefaultValus.Add(colNameStr, defaultVal);
                     }
                 }
@@ -245,14 +276,15 @@ namespace CosmosConfigurator
             }
 
             var fileName = Path.GetFileNameWithoutExtension(path);
-            File.WriteAllText(string.Format("{0}{1}", fileName, _config.ExportTabExt), strBuilder.ToString());
+            var exportPath = string.Format("{0}{1}", fileName, _config.ExportTabExt);
+            File.WriteAllText(exportPath, strBuilder.ToString());
 
 
             // 生成代码
             var template = Template.Parse(File.ReadAllText("./GenCode.tpl"));
 
-            codeGentor.ClassName = string.Join("", (from name in fileName.Split('_') select System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name)).ToArray());
-            codeGentor.TableFilePath = path;
+            renderVars.ClassName = string.Join("", (from name in fileName.Split('_') select System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name)).ToArray());
+            renderVars.TabFilePath = exportPath;
             //var codeSb = new StringBuilder();
             //// aa_bb => AaBb
             //var className = 
@@ -276,7 +308,7 @@ namespace CosmosConfigurator
             
             //// PrimaryKey
             //codeSb.Replace("$PRIMARY_KEY", codeGentor.primaryKeyColumn ?? "null");
-            return template.Render(Hash.FromAnonymousObject(codeGentor));
+            return template.Render(Hash.FromAnonymousObject(renderVars));
         } 
 
         public bool Compile(string path)

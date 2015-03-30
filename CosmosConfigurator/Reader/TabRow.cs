@@ -34,12 +34,14 @@ namespace CosmosConfigurator
         }
         protected int Get_int(string value, string defaultValue)
         {
-            return int.Parse(Get_string(value, defaultValue));
+            var str = Get_string(value, defaultValue);
+            return string.IsNullOrEmpty(str) ? default(int) : int.Parse(str);
         }
 
         protected uint Get_uint(string value, string defaultValue)
         {
-            return uint.Parse(Get_string(value, defaultValue));
+            var str = Get_string(value, defaultValue);
+            return string.IsNullOrEmpty(str) ? default(int) : uint.Parse(str);
         }
 
         protected string[] Get_string_array(string value, string defaultValue)

@@ -35,12 +35,22 @@ namespace CosmosConfiguratorTest
         [TestMethod]
         public void ReadCompliedTsvWithClass()
         {
-            //var tabFile = TabFile<TestExcelConfig>.LoadFromFile("./test_excel.bytes");
+            var tabFile = TabFile<TestExcelConfig>.LoadFromFile("./test_excel.bytes");
 
-            //var config = tabFile.FindByPrimaryKey(1);
+            var config = tabFile.FindByPrimaryKey(1);
 
-            //Assert.IsNotNull(config);
-            //Assert.AreEqual(config.Name, "Test1");
+            Assert.IsNotNull(config);
+            Assert.AreEqual(config.Name, "Test1");
+        }
+
+
+        /// <summary>
+        /// 测试写入TSV
+        /// </summary>
+        [TestMethod]
+        public void TestWriteTSV()
+        {
+
         }
     }
 }

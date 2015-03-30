@@ -63,7 +63,7 @@ namespace CosmosConfigurator
         }
 
 
-        private int ColCount;  // 列数
+        private int _colCount;  // 列数
 
         /// <summary>
         /// 表头信息
@@ -142,7 +142,7 @@ namespace CosmosConfigurator
 
                 ColIndex[headerInfo.HeaderName] = headerInfo;
             }
-            ColCount = firstLineSplitString.Length;  // 標題
+            _colCount = firstLineSplitString.Length;  // 標題
 
             // 读取行内容
             string sLine = "";
@@ -188,7 +188,7 @@ namespace CosmosConfigurator
             foreach (var header in ColIndex.Values)
                 sb.Append(string.Format("{0}\t", header.HeaderName));
             sb.Append("\r\n");
-
+            
             foreach (var header in ColIndex.Values)
                 sb.Append(string.Format("{0}\t", header.HeaderDef));
             sb.Append("\r\n");
@@ -252,14 +252,14 @@ namespace CosmosConfigurator
             };
 
             ColIndex.Add(colName, newHeader);
-            ColCount++;
+            _colCount++;
 
-            return ColCount;
+            return _colCount;
         }
 
         public int NewRow()
         {
-            string[] list = new string[ColCount];
+            string[] list = new string[_colCount];
             int rowId = TabInfo.Count + 1;
             TabInfo.Add(rowId, list);
             return rowId;
@@ -272,17 +272,17 @@ namespace CosmosConfigurator
 
         public int GetColumnCount()
         {
-            return ColCount;
+            return _colCount;
         }
 
         public int GetWidth()
         {
-            return ColCount;
+            return _colCount;
         }
 
         public bool SetValue<T>(int row, int column, T value)
         {
-            if (row > TabInfo.Count || column > ColCount || row <= 0 || column <= 0)  //  || column > ColIndex.Count
+            if (row > TabInfo.Count || column > _colCount || row <= 0 || column <= 0)  //  || column > ColIndex.Count
             {
                 throw new Exception(string.Format("Wrong row-{0} or column-{1}", row, column));
                 return false;
