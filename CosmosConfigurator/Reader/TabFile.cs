@@ -75,14 +75,14 @@ namespace CosmosConfigurator
             public string HeaderDef;
         }
 
-        protected Dictionary<string, HeaderInfo> ColIndex = new Dictionary<string, HeaderInfo>();
+        protected Dictionary<string, HeaderInfo> Headers = new Dictionary<string, HeaderInfo>();
         protected Dictionary<int, string[]> TabInfo = new Dictionary<int, string[]>();
         protected Dictionary<int, T> Rows = new Dictionary<int, T>();
         protected Dictionary<object, T> PrimaryKey2Row = new Dictionary<object, T>();
 
         public Dictionary<string, HeaderInfo>.KeyCollection HeaderNames
         {
-            get { return ColIndex.Keys; }
+            get { return Headers.Keys; }
         }
 
         // 直接从字符串分析
@@ -140,7 +140,7 @@ namespace CosmosConfigurator
                     HeaderDef = firstLineDef[i - 1],
                 };
 
-                ColIndex[headerInfo.HeaderName] = headerInfo;
+                Headers[headerInfo.HeaderName] = headerInfo;
             }
             _colCount = firstLineSplitString.Length;  // 標題
 
@@ -185,11 +185,11 @@ namespace CosmosConfigurator
             bool result = false;
             StringBuilder sb = new StringBuilder();
 
-            foreach (var header in ColIndex.Values)
+            foreach (var header in Headers.Values)
                 sb.Append(string.Format("{0}\t", header.HeaderName));
             sb.Append("\r\n");
             
-            foreach (var header in ColIndex.Values)
+            foreach (var header in Headers.Values)
                 sb.Append(string.Format("{0}\t", header.HeaderDef));
             sb.Append("\r\n");
 
@@ -226,7 +226,7 @@ namespace CosmosConfigurator
 
         public bool HasColumn(string colName)
         {
-            return ColIndex.ContainsKey(colName);
+            return Headers.ContainsKey(colName);
         }
 
         private void OnExeption(string message)
@@ -246,12 +246,12 @@ namespace CosmosConfigurator
 
             var newHeader = new HeaderInfo
             {
-                ColumnIndex = ColIndex.Count + 1,
+                ColumnIndex = Headers.Count + 1,
                 HeaderName = colName,
                 HeaderDef = defineStr,
             };
 
-            ColIndex.Add(colName, newHeader);
+            Headers.Add(colName, newHeader);
             _colCount++;
 
             return _colCount;
@@ -290,12 +290,12 @@ namespace CosmosConfigurator
             string content = Convert.ToString(value);
             if (row == 0)
             {
-                foreach (var kv in ColIndex)
+                foreach (var kv in Headers)
                 {
                     if (kv.Value.ColumnIndex == column)
                     {
-                        ColIndex.Remove(kv.Key);
-                        ColIndex[content] = kv.Value;
+                        Headers.Remove(kv.Key);
+                        Headers[content] = kv.Value;
                         break;
                     }
                 }
@@ -314,7 +314,7 @@ namespace CosmosConfigurator
         public bool SetValue<T>(int row, string columnName, T value)
         {
             HeaderInfo headerInfo;
-            if (!ColIndex.TryGetValue(columnName, out headerInfo))
+            if (!Headers.TryGetValue(columnName, out headerInfo))
                 return false;
 
             return SetValue(row, headerInfo.ColumnIndex, value);
@@ -342,7 +342,7 @@ namespace CosmosConfigurator
 
         public void Dispose()
         {
-            this.ColIndex.Clear();
+            this.Headers.Clear();
             this.TabInfo.Clear();
         }
 
