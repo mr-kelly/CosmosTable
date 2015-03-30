@@ -6,8 +6,6 @@
 *.user
 *.sln.docstates
 
-dotliquid/
-
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
