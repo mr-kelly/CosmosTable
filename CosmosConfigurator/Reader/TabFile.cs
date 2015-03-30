@@ -7,19 +7,6 @@ using System.Text;
 
 namespace CosmosConfigurator
 {
-    // 一行
-    public class TabRow3<T> where T : TabRow, new()
-    {
-        internal TabFile<T> TabFile;
-
-        public int Row { get; internal set; }
-
-        internal TabRow3(TabFile<T> tabFile)
-        {
-            TabFile = tabFile;
-        }
-    }
-
     public class TabFileConfig
     {
         public string Content;
@@ -40,10 +27,8 @@ namespace CosmosConfigurator
         }
     }
 
-    public class TabFile<T> : IEnumerable<TabRow3<T>>, IDisposable where T : TabRow, new()
+    public class TabFile<T> : IDisposable where T : TabRow, new()  // IEnumerable<TabRow3<T>>, 
     {
-        private readonly TabRow3<T> _rowInteratorCache;
-
         private readonly TabFileConfig _config;
 
         public TabFile(string content)
@@ -58,7 +43,7 @@ namespace CosmosConfigurator
         {
             _config = config;
 
-            _rowInteratorCache = new TabRow3<T>(this);  // 用來迭代的
+            //_rowInteratorCache = new TabRow3<T>(this);  // 用來迭代的
             ParseString(_config.Content);
         }
 
@@ -320,25 +305,25 @@ namespace CosmosConfigurator
             return SetValue(row, headerInfo.ColumnIndex, value);
         }
 
-        IEnumerator<TabRow3<T>> IEnumerable<TabRow3<T>>.GetEnumerator()
-        {
-            int rowStart = 1;
-            for (int i = rowStart; i <= GetHeight(); i++)
-            {
-                _rowInteratorCache.Row = i;
-                yield return _rowInteratorCache;
-            }
-        }
+        //IEnumerator<TabRow3<T>> IEnumerable<TabRow3<T>>.GetEnumerator()
+        //{
+        //    int rowStart = 1;
+        //    for (int i = rowStart; i <= GetHeight(); i++)
+        //    {
+        //        _rowInteratorCache.Row = i;
+        //        yield return _rowInteratorCache;
+        //    }
+        //}
 
-        public IEnumerator GetEnumerator()
-        {
-            int rowStart = 1;
-            for (int i = rowStart; i <= GetHeight(); i++)
-            {
-                _rowInteratorCache.Row = i;
-                yield return _rowInteratorCache;
-            }
-        }
+        //public IEnumerator GetEnumerator()
+        //{
+        //    int rowStart = 1;
+        //    for (int i = rowStart; i <= GetHeight(); i++)
+        //    {
+        //        _rowInteratorCache.Row = i;
+        //        yield return _rowInteratorCache;
+        //    }
+        //}
 
         public void Dispose()
         {

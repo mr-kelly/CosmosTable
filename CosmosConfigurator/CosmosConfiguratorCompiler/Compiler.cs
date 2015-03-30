@@ -64,6 +64,7 @@ namespace CosmosConfigurator
 
         public string ExportCodePath = null;//= "CosmosConfigs.cs";
 
+        public string NameSpace = "AppConfigs";
     }
 
     /// <summary>
@@ -85,7 +86,7 @@ namespace CosmosConfigurator
             _config = cfg;
         }
 
-        private string DoCompiler(string path, FileStream stream)
+        private Hash DoCompiler(string path, FileStream stream)
         {
             IExcelDataReader excelReader = null;
             try
@@ -118,7 +119,7 @@ namespace CosmosConfigurator
         }
 
 
-        private string DoCompilerExcelReader(string path, IExcelDataReader excelReader)
+        private Hash DoCompilerExcelReader(string path, IExcelDataReader excelReader)
         {
             //3. DataSet - The result of each spreadsheet will be created in the result.Tables
             //DataSet result = excelReader.AsDataSet();
@@ -280,29 +281,32 @@ namespace CosmosConfigurator
             File.WriteAllText(exportPath, strBuilder.ToString());
 
 
-            // 生成代码
-            var template = Template.Parse(File.ReadAllText("./GenCode.cs.tpl"));
-
             renderVars.ClassName = string.Join("", (from name in fileName.Split('_') select System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name)).ToArray());
             renderVars.TabFilePath = exportPath;
 
-            return template.Render(Hash.FromAnonymousObject(renderVars));
+            return Hash.FromAnonymousObject(renderVars);
         } 
 
         public bool Compile(string path)
         {
-            var exportCodes = new StringBuilder();
-            exportCodes.AppendLine("using CosmosConfigurator;");
-
             using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
             {
-                string code = DoCompiler(path, stream);
 
-                exportCodes.Append(code);
+                // 生成代码
+                var template = Template.Parse(File.ReadAllText("./GenCode.cs.tpl"));
+                var topHash = new Hash();
+                topHash["NameSpace"] = _config.NameSpace;
+                var files = new List<Hash>();
+                topHash["Files"] = files;
+
+                var hash = DoCompiler(path, stream);
+                files.Add(hash);
+                
+                if (!string.IsNullOrEmpty(_config.ExportCodePath))
+                    File.WriteAllText(_config.ExportCodePath, template.Render(topHash));
+
             }
 
-            if (!string.IsNullOrEmpty(_config.ExportCodePath))
-                File.WriteAllText(_config.ExportCodePath, exportCodes.ToString());
 
             return true;
         }
