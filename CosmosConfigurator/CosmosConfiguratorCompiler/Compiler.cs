@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using Excel;
+using DotLiquid;
 
 namespace CosmosConfigurator
 {
@@ -20,11 +23,29 @@ namespace CosmosConfigurator
         }
     }
 
+    public class CodeGentor
+    {
+        public string TableFilePath { get; set; }
+        public string ClassName { get; set; }
+        public List<Hash> Fields { get; set; } // column + type
+        public List<Hash> Columns2DefaultValus { get; set; } // column + Default Values
+        public string PrimaryKey { get; set; }
+
+        public CodeGentor()
+        {
+            Fields = new List<Hash>();
+            Columns2DefaultValus = new List<Hash>();
+        }
+
+    }
     public class CompilerConfig
     {
-        public string ExcelPath;
-        public string Ext = ".bytes";
+        public string ExportTabExt = ".bytes";
+
         public string[] CommentColumnStartsWith = {"Comment", "#"};
+
+        public string ExportCodePath = null;//= "CosmosConfigs.cs";
+
     }
 
     /// <summary>
@@ -34,10 +55,9 @@ namespace CosmosConfigurator
     {
         private CompilerConfig _config;
 
-        public Compiler(string excelPath)
+        public Compiler()
             : this(new CompilerConfig()
             {
-                ExcelPath = excelPath
             })
         {
         }
@@ -47,7 +67,7 @@ namespace CosmosConfigurator
             _config = cfg;
         }
 
-        private bool DoCompiler(FileStream stream)
+        private string DoCompiler(string path, FileStream stream)
         {
             IExcelDataReader excelReader = null;
             try
@@ -55,7 +75,7 @@ namespace CosmosConfigurator
                 //1. Reading from a binary Excel file ('97-2003 format; *.xls)
                 excelReader = ExcelReaderFactory.CreateBinaryReader(stream);
             }
-            catch (Exception e1)
+            catch (Exception)
             {
                 try
                 {
@@ -64,7 +84,7 @@ namespace CosmosConfigurator
                 }
                 catch (Exception e2)
                 {
-                    throw new InvalidExcelException("Cannot read Excel File : " + _config.ExcelPath);
+                    throw new InvalidExcelException("Cannot read Excel File : " + path + e2.Message);
                 }
             }
 
@@ -72,14 +92,15 @@ namespace CosmosConfigurator
             {
                 using (excelReader)
                 {
-                    return DoCompilerExcelReader(excelReader);
+                    return DoCompilerExcelReader(path, excelReader);
                 }
             }
 
-            return false;
+            return null;
         }
 
-        private bool DoCompilerExcelReader(IExcelDataReader excelReader)
+
+        private string DoCompilerExcelReader(string path, IExcelDataReader excelReader)
         {
             //3. DataSet - The result of each spreadsheet will be created in the result.Tables
             //DataSet result = excelReader.AsDataSet();
@@ -97,12 +118,32 @@ namespace CosmosConfigurator
 
             var ignoreColumns = new HashSet<int>();
             var ignoreRows = new HashSet<int>();
+            
+            // 寻找注释行，1,或2行
+            var hasStatementRow = false;
+            var statementRow = sheet1.Rows[0].ItemArray;
+            var regExCheckStatement = new Regex(@"\[(.*)\]");
+            foreach (var cellVal in statementRow)
+            {
+                if ((cellVal is string))
+                {
+                    var matches = regExCheckStatement.Matches(cellVal.ToString());
+                    if (matches.Count > 0)
+                    {
+                        hasStatementRow = true;
+                    }
+                }
+
+                break;
+            }
 
             // Header
             int colIndex = 0;
+            var codeGentor = new CodeGentor();
+
             foreach (DataColumn column in sheet1.Columns)
             {
-                var colNameStr = column.ColumnName;
+                var colNameStr = column.ColumnName.Trim();
                 if (!string.IsNullOrEmpty(colNameStr))
                 {
                     var isCommentColumn = false;
@@ -122,27 +163,48 @@ namespace CosmosConfigurator
                     {
                         if (colIndex > 0)
                             strBuilder.Append("\t");
-                        strBuilder.Append(colNameStr);    
+                        strBuilder.Append(colNameStr);
+
+                        string typeName = "string";
+                        string defaultVal = "";
+                        
+                        if (hasStatementRow)
+                        {
+                            var match = regExCheckStatement.Match(statementRow[colIndex].ToString());
+                            var attrs = match.Groups[1].ToString().Split(':');
+                            // Type
+                            
+                            if (attrs.Length > 0)
+                            {
+                                typeName = attrs[0];
+                            }
+                            // Default Value
+                            if (attrs.Length > 1)
+                            {
+                                defaultVal = attrs[1];
+                            }
+                            if (attrs.Length > 2)
+                            {
+                                if (attrs[2] == "pk")
+                                {
+                                    codeGentor.PrimaryKey = colNameStr;
+                                }
+                            }
+
+                        }
+
+                        codeGentor.Fields.Add(Hash.FromAnonymousObject(new
+                        {
+                            Type = typeName,
+                            Name = colNameStr,
+                            TypeStr = typeName.Replace("[]", "_array"),
+                        }));
+                        //codeGentor.Columns2DefaultValus.Add(colNameStr, defaultVal);
                     }
                 }
                 colIndex++;
             }
             strBuilder.Append("\n");
-
-            // 寻找注释行，1,或2行
-            var hasStatementRow = false;
-            var regExCheckStatement = new Regex(@"\[(.*)\]");
-            foreach (var cellVal in sheet1.Rows[0].ItemArray)
-            {
-                if ((cellVal is string))
-                {
-                    var matches = regExCheckStatement.Matches(cellVal.ToString());
-                    if (matches.Count > 0)
-                        hasStatementRow = true;    
-                }
-                
-                break;
-            }
 
             // Rows
             var rowIndex = 1;
@@ -183,25 +245,57 @@ namespace CosmosConfigurator
                 rowIndex++;
             }
 
-            //5. Data Reader methods
-            //while (excelReader.Read())
+            var fileName = Path.GetFileNameWithoutExtension(path);
+            File.WriteAllText(string.Format("{0}{1}", fileName, _config.ExportTabExt), strBuilder.ToString());
+
+
+            // 生成代码
+            var template = Template.Parse(File.ReadAllText("./GenCode.tpl"));
+
+            codeGentor.ClassName = string.Join("", (from name in fileName.Split('_') select System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name)).ToArray());
+            codeGentor.TableFilePath = path;
+            //var codeSb = new StringBuilder();
+            //// aa_bb => AaBb
+            //var className = 
+
+            //codeSb.Replace("$TABLE_FILE", path);
+            //codeSb.Replace("$CLASS_NAME", className);
+
+            //// fields & parse
+            //var fieldsSb = new StringBuilder();
+            //var parseSb = new StringBuilder();
+            //int columnIndex2 = 0;
+            //foreach (var kv in codeGentor.columns2Types) // field name => field type
             //{
-            //    //excelReader.GetInt32(0);
+            //    fieldsSb.AppendLine(string.Format("\tpublic {0} {1};", kv.Value, kv.Key));
+            //    parseSb.AppendLine(string.Format("\t\t{0} = Get_{1}(values[{2}], \"\");", kv.Key, kv.Value.Replace("[]", "_array"), columnIndex2));
+            //    columnIndex2++;
             //}
+            //codeSb.Replace("$FIELDS", fieldsSb.ToString());
+            //codeSb.Replace("$PARSE_FIELDS", parseSb.ToString());
 
-            //6. Free resources (IExcelDataReader is IDisposable)
+            
+            //// PrimaryKey
+            //codeSb.Replace("$PRIMARY_KEY", codeGentor.primaryKeyColumn ?? "null");
+            return template.Render(Hash.FromAnonymousObject(codeGentor));
+        } 
 
-
-            var fileName = Path.GetFileNameWithoutExtension(_config.ExcelPath);
-            File.WriteAllText(string.Format("{0}{1}", fileName, _config.Ext), strBuilder.ToString());
-            return true;
-        }
-        public bool Run()
+        public bool Compile(string path)
         {
-            using (FileStream stream = File.Open(_config.ExcelPath, FileMode.Open, FileAccess.Read))
+            var exportCodes = new StringBuilder();
+            exportCodes.AppendLine("using CosmosConfigurator;");
+
+            using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
             {
-                return DoCompiler(stream);
+                string code = DoCompiler(path, stream);
+
+                exportCodes.Append(code);
             }
+
+            if (!string.IsNullOrEmpty(_config.ExportCodePath))
+                File.WriteAllText(_config.ExportCodePath, exportCodes.ToString());
+
+            return true;
         }
     }
 }

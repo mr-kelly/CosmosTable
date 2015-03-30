@@ -2,36 +2,63 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace CosmosConfigurator
 {
-    public class ReaderConfig
+    // 一行
+    public class TabRow3<T> where T : TabRow, new()
+    {
+        internal TabFile<T> TabFile;
+
+        public int Row { get; internal set; }
+
+        internal TabRow3(TabFile<T> tabFile)
+        {
+            TabFile = tabFile;
+        }
+    }
+
+    public class TabFileConfig
     {
         public string Content;
         public char[] Separators = new char[] { '\t' };
         public Action<string> OnExceptionEvent;
     }
 
-    public class Reader : IEnumerable<Reader.RowInterator>, IDisposable
+    public class TabFile : TabFile<DefaultTabRow>
     {
-        private readonly RowInterator _rowInteratorCache;
+        public TabFile(string content)
+            : base(content)
+        {
+        }
 
-        private ReaderConfig _config;
+        public TabFile(TabFileConfig config)
+            : base(config)
+        {
+        }
+    }
 
-        public Reader(string content)
-            : this(new ReaderConfig()
+    public class TabFile<T> : IEnumerable<TabRow3<T>>, IDisposable where T : TabRow, new()
+    {
+        private readonly TabRow3<T> _rowInteratorCache;
+
+        private readonly TabFileConfig _config;
+
+        public TabFile(string content)
+            : this(new TabFileConfig()
                 {
                     Content = content
                 })
         {
         }
 
-        public Reader(ReaderConfig config)
+        public TabFile(TabFileConfig config)
         {
             _config = config;
 
-            _rowInteratorCache = new RowInterator(this);  // 用來迭代的
+            _rowInteratorCache = new TabRow3<T>(this);  // 用來迭代的
             ParseString(_config.Content);
         }
 
@@ -50,6 +77,8 @@ namespace CosmosConfigurator
 
         protected Dictionary<string, HeaderInfo> ColIndex = new Dictionary<string, HeaderInfo>();
         protected Dictionary<int, string[]> TabInfo = new Dictionary<int, string[]>();
+        protected Dictionary<int, T> Rows = new Dictionary<int, T>();
+        protected Dictionary<object, T> PrimaryKey2Row = new Dictionary<object, T>();
 
         public Dictionary<string, HeaderInfo>.KeyCollection HeaderNames
         {
@@ -57,23 +86,23 @@ namespace CosmosConfigurator
         }
 
         // 直接从字符串分析
-        public static Reader LoadFromString(string content)
+        public static TabFile<T> LoadFromString(string content)
         {
-            Reader tabFile = new Reader(content);
+            TabFile<T> tabFile = new TabFile<T>(content);
             tabFile.ParseString(content);
 
             return tabFile;
         }
 
         // 直接从文件, 传入完整目录，跟通过资源管理器自动生成完整目录不一样，给art库用的
-        public static Reader LoadFromFile(string fileFullPath)
+        public static TabFile<T> LoadFromFile(string fileFullPath)
         {
             using (FileStream fileStream = new FileStream(fileFullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             // 不会锁死, 允许其它程序打开
             {
 
                 StreamReader oReader = new StreamReader(fileStream, System.Text.Encoding.UTF8);
-                return new Reader(oReader.ReadToEnd());
+                return new TabFile<T>(oReader.ReadToEnd());
             }
         }
 
@@ -115,7 +144,7 @@ namespace CosmosConfigurator
             }
             ColCount = firstLineSplitString.Length;  // 標題
 
-            // 读取内容
+            // 读取行内容
             string sLine = "";
             int rowIndex = 1; // 从第1行开始
             while (sLine != null)
@@ -123,9 +152,17 @@ namespace CosmosConfigurator
                 sLine = oReader.ReadLine();
                 if (sLine != null)
                 {
+
                     string[] splitString1 = sLine.Split(_config.Separators, StringSplitOptions.None);
 
                     TabInfo[rowIndex] = splitString1;
+
+                    var newT = Rows[rowIndex] = new T();
+                    newT.Parse(splitString1);
+
+                    if (newT.PrimaryKey != null)
+                        PrimaryKey2Row[newT.PrimaryKey] = newT;
+
                     rowIndex++;
                 }
             }
@@ -185,145 +222,6 @@ namespace CosmosConfigurator
             }
 
             return result;
-        }
-
-        // 主要的解析函數
-        private string _GetString(int row, int column)
-        {
-            if (column == 0) // 没有此列
-                return string.Empty;
-            var rowStrings = TabInfo[row];
-
-            return column - 1 >= rowStrings.Length ? "" : rowStrings[column - 1].ToString();
-        }
-
-        public string GetString(int row, int column)
-        {
-            return _GetString(row, column);
-        }
-
-        public string GetString(int row, string columnName)
-        {
-            HeaderInfo headerInfo;
-            if (!ColIndex.TryGetValue(columnName, out headerInfo))
-                return string.Empty;
-
-            return GetString(row, headerInfo.ColumnIndex);
-        }
-
-        public int GetInteger(int row, int column)
-        {
-            try
-            {
-                string field = GetString(row, column);
-                return (int)float.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public int GetInteger(int row, string columnName)
-        {
-            try
-            {
-                string field = GetString(row, columnName);
-                return (int)float.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public uint GetUInteger(int row, int column)
-        {
-            try
-            {
-                string field = GetString(row, column);
-                return (uint)float.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public uint GetUInteger(int row, string columnName)
-        {
-            try
-            {
-                string field = GetString(row, columnName);
-                return (uint)float.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-        public double GetDouble(int row, int column)
-        {
-            try
-            {
-                string field = GetString(row, column);
-                return double.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public double GetDouble(int row, string columnName)
-        {
-            try
-            {
-                string field = GetString(row, columnName);
-                return double.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public float GetFloat(int row, int column)
-        {
-            try
-            {
-                string field = GetString(row, column);
-                return float.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public float GetFloat(int row, string columnName)
-        {
-            try
-            {
-                string field = GetString(row, columnName);
-                return float.Parse(field);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        public bool GetBool(int row, int column)
-        {
-            int field = GetInteger(row, column);
-            return field != 0;
-        }
-
-        public bool GetBool(int row, string columnName)
-        {
-            int field = GetInteger(row, columnName);
-            return field != 0;
         }
 
         public bool HasColumn(string colName)
@@ -422,7 +320,7 @@ namespace CosmosConfigurator
             return SetValue(row, headerInfo.ColumnIndex, value);
         }
 
-        IEnumerator<RowInterator> IEnumerable<RowInterator>.GetEnumerator()
+        IEnumerator<TabRow3<T>> IEnumerable<TabRow3<T>>.GetEnumerator()
         {
             int rowStart = 1;
             for (int i = rowStart; i <= GetHeight(); i++)
@@ -442,27 +340,6 @@ namespace CosmosConfigurator
             }
         }
 
-        public class RowInterator  // 一行
-        {
-            internal Reader TabFile;
-
-            public int Row { get; internal set; }
-
-            internal RowInterator(Reader tabFile)
-            {
-                TabFile = tabFile;
-            }
-
-            public string GetString(string colName)
-            {
-                return TabFile.GetString(Row, colName);
-            }
-            public int GetInteger(string colName)
-            {
-                return TabFile.GetInteger(Row, colName);
-            }
-        }
-
         public void Dispose()
         {
             this.ColIndex.Clear();
@@ -472,6 +349,12 @@ namespace CosmosConfigurator
         public void Close()
         {
             Dispose();
+        }
+
+        public T FindByPrimaryKey(object primaryKey)
+        {
+            T ret;
+            return PrimaryKey2Row.TryGetValue(primaryKey, out ret) ? ret : default(T);
         }
     }
 }
