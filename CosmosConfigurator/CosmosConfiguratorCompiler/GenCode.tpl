@@ -11,7 +11,7 @@ public class {{ClassName}}Config : TabRow
 	public override void Parse(string[] values)
 	{
 	{% for field in Fields %}
-		{{ field.Name}} = Get_{{ field.TypeStr }}("", "");
+		{{ field.Name}} = Get_{{ field.Type | replace:'\[\]','_array' }}("", "");
 	{% endfor %}
 	}
 

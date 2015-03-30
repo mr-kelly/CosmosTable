@@ -197,7 +197,6 @@ namespace CosmosConfigurator
                         {
                             Type = typeName,
                             Name = colNameStr,
-                            TypeStr = typeName.Replace("[]", "_array"),
                         }));
                         //codeGentor.Columns2DefaultValus.Add(colNameStr, defaultVal);
                     }
