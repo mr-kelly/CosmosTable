@@ -1,7 +1,7 @@
 using CosmosConfigurator;
 
 /// <summary>
-/// Table File: test_excel.bytes
+/// Auto Generate for Tab File: test_excel.bytes
 /// </summary>
 public class TestExcelConfig : TabRow
 {

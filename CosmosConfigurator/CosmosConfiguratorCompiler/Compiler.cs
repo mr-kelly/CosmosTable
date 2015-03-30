@@ -281,33 +281,11 @@ namespace CosmosConfigurator
 
 
             // 生成代码
-            var template = Template.Parse(File.ReadAllText("./GenCode.tpl"));
+            var template = Template.Parse(File.ReadAllText("./GenCode.cs.tpl"));
 
             renderVars.ClassName = string.Join("", (from name in fileName.Split('_') select System.Threading.Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(name)).ToArray());
             renderVars.TabFilePath = exportPath;
-            //var codeSb = new StringBuilder();
-            //// aa_bb => AaBb
-            //var className = 
 
-            //codeSb.Replace("$TABLE_FILE", path);
-            //codeSb.Replace("$CLASS_NAME", className);
-
-            //// fields & parse
-            //var fieldsSb = new StringBuilder();
-            //var parseSb = new StringBuilder();
-            //int columnIndex2 = 0;
-            //foreach (var kv in codeGentor.columns2Types) // field name => field type
-            //{
-            //    fieldsSb.AppendLine(string.Format("\tpublic {0} {1};", kv.Value, kv.Key));
-            //    parseSb.AppendLine(string.Format("\t\t{0} = Get_{1}(values[{2}], \"\");", kv.Key, kv.Value.Replace("[]", "_array"), columnIndex2));
-            //    columnIndex2++;
-            //}
-            //codeSb.Replace("$FIELDS", fieldsSb.ToString());
-            //codeSb.Replace("$PARSE_FIELDS", parseSb.ToString());
-
-            
-            //// PrimaryKey
-            //codeSb.Replace("$PRIMARY_KEY", codeGentor.primaryKeyColumn ?? "null");
             return template.Render(Hash.FromAnonymousObject(renderVars));
         } 
 

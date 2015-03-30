@@ -1,6 +1,6 @@
 
 /// <summary>
-/// Table File: {{ TabFilePath }}
+/// Auto Generate for Tab File: {{ TabFilePath }}
 /// </summary>
 public class {{ClassName}}Config : TabRow
 {
