@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CosmosConfigurator
 {
-
     public class TabRow
     {
-        public TabRow()
+        public virtual bool IsAutoParse
         {
-            
+            get { return false; }
         }
+        public int RowNumber;
+        protected TabRow()
+        {
+        }
+
         public virtual void Parse(string[] cellStrs)
         {
         }

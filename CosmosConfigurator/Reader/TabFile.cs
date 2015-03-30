@@ -3,20 +3,36 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace CosmosConfigurator
 {
+    public class AutoParseAttribute : Attribute
+    {
+        
+    }
+    public class TabColumnAttribute : Attribute
+    {
+
+    }
+
+    /// <summary>
+    /// 表头信息
+    /// </summary>
+    public class HeaderInfo
+    {
+        public int ColumnIndex;
+        public string HeaderName;
+        public string HeaderDef;
+    }
+
     public class TabFileConfig
     {
         public string Content;
+
         public char[] Separators = new char[] { '\t' };
         public Action<string> OnExceptionEvent;
-
-        /// <summary>
-        /// 在记录PrimaryKey时，记录是否需要检查重复
-        /// </summary>
-        public bool CheckDupliactedPrimaryKey = true;
     }
 
     public class TabFile : TabFile<DefaultTabRow>
@@ -32,7 +48,7 @@ namespace CosmosConfigurator
         }
     }
 
-    public class TabFile<T> : IDisposable where T : TabRow, new()  // IEnumerable<TabRow3<T>>, 
+    public partial class TabFile<T> : IDisposable where T : TabRow, new()  // IEnumerable<TabRow3<T>>, 
     {
         private readonly TabFileConfig _config;
 
@@ -44,30 +60,33 @@ namespace CosmosConfigurator
         {
         }
 
+        public TabFile()
+            : this(new TabFileConfig())
+        {
+        }
+
         public TabFile(TabFileConfig config)
         {
             _config = config;
 
-            //_rowInteratorCache = new TabRow3<T>(this);  // 用來迭代的
-            ParseString(_config.Content);
+            if (!string.IsNullOrEmpty(_config.Content))
+                ParseString(_config.Content);
         }
 
 
-        private int _colCount;  // 列数
+        protected internal int _colCount;  // 列数
+
+        protected internal Dictionary<string, HeaderInfo> Headers = new Dictionary<string, HeaderInfo>();
+        protected internal Dictionary<int, string[]> TabInfo = new Dictionary<int, string[]>();
 
         /// <summary>
-        /// 表头信息
+        /// Row Id to Rows , start from 1
         /// </summary>
-        public class HeaderInfo
-        {
-            public int ColumnIndex;
-            public string HeaderName;
-            public string HeaderDef;
-        }
+        protected internal Dictionary<int, T> Rows = new Dictionary<int, T>();
 
-        protected Dictionary<string, HeaderInfo> Headers = new Dictionary<string, HeaderInfo>();
-        protected Dictionary<int, string[]> TabInfo = new Dictionary<int, string[]>();
-        protected Dictionary<int, T> Rows = new Dictionary<int, T>();
+        /// <summary>
+        /// Store the Primary Key to Rows
+        /// </summary>
         protected Dictionary<object, T> PrimaryKey2Row = new Dictionary<object, T>();
 
         public Dictionary<string, HeaderInfo>.KeyCollection HeaderNames
@@ -135,7 +154,7 @@ namespace CosmosConfigurator
             _colCount = firstLineSplitString.Length;  // 標題
 
             // 读取行内容
-            
+
             T cachedNewObj = null;
 
             string sLine = "";
@@ -150,7 +169,12 @@ namespace CosmosConfigurator
                     TabInfo[rowIndex] = splitString1;
 
                     var newT = cachedNewObj ?? (cachedNewObj = new T());  // the New Object may not be used this time, so cache it!
-                    newT.Parse(splitString1);
+                    newT.RowNumber = rowIndex;
+                    
+                    if (!newT.IsAutoParse)
+                        newT.Parse(splitString1);
+                    else
+                        AutoParse(newT, splitString1);
 
                     if (newT.PrimaryKey != null)
                     {
@@ -169,7 +193,6 @@ namespace CosmosConfigurator
                     }
 
                     Rows[rowIndex] = newT;
-
                     rowIndex++;
                 }
             }
@@ -177,6 +200,42 @@ namespace CosmosConfigurator
             return true;
         }
 
+        protected void AutoParse(TabRow tabRow, string[] cellStrs)
+        {
+            var type = tabRow.GetType();
+            var allFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var okFields = new List<FieldInfo>();
+
+            foreach (FieldInfo field in allFields)
+            {
+                if (field.Name.StartsWith("_"))  // 筛掉
+                    continue;
+
+                if (!HasColumn(field.Name))
+                {
+                    OnExeption("表{0} 找不到表头{1}", type.Name, field.Name);
+                    continue;
+                }
+                okFields.Add(field);
+            }
+
+            foreach (var field in okFields)
+            {
+                var fieldName = field.Name;
+                var fieldType = field.FieldType;
+                var methodName = string.Format("Get_{0}", fieldType);
+                var method = type.GetMethod(methodName);
+                if (method != null)
+                {
+                    field.SetValue(tabRow, method.Invoke(tabRow, new object[] { }));
+                }
+                else
+                {
+                    OnExeption("Not Find the Method {0}", methodName);
+                }
+            }
+
+        }
         protected bool ParseString(string content)
         {
             using (var oReader = new StringReader(content))
@@ -187,57 +246,12 @@ namespace CosmosConfigurator
             return true;
         }
 
-        // 将当前保存成文件
-        public bool Save(string fileName)
-        {
-            bool result = false;
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var header in Headers.Values)
-                sb.Append(string.Format("{0}\t", header.HeaderName));
-            sb.Append("\r\n");
-            
-            foreach (var header in Headers.Values)
-                sb.Append(string.Format("{0}\t", header.HeaderDef));
-            sb.Append("\r\n");
-
-            foreach (KeyValuePair<int, string[]> item in TabInfo)
-            {
-                foreach (string str in item.Value)
-                {
-                    sb.Append(str);
-                    sb.Append('\t');
-                }
-                sb.Append("\r\n");
-            }
-
-            try
-            {
-                using (FileStream fs = new FileStream(fileName, FileMode.Create))
-                {
-                    using (StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8))
-                    {
-                        sw.Write(sb);
-
-                        result = true;
-                    }
-                }
-            }
-            catch (IOException e)
-            {
-                throw new Exception("可能文件正在被Excel打开?" + e.Message);
-                result = false;
-            }
-
-            return result;
-        }
-
         public bool HasColumn(string colName)
         {
             return Headers.ContainsKey(colName);
         }
 
-        private void OnExeption(string message, params object[] args)
+        protected internal void OnExeption(string message, params object[] args)
         {
             if (_config.OnExceptionEvent == null)
                 throw new Exception(string.Format(message, args));
@@ -247,35 +261,9 @@ namespace CosmosConfigurator
             }
         }
 
-        public int NewColumn(string colName, string defineStr = "")
-        {
-            if (string.IsNullOrEmpty(colName))
-                OnExeption("Null Col Name : " + colName);
-
-            var newHeader = new HeaderInfo
-            {
-                ColumnIndex = Headers.Count + 1,
-                HeaderName = colName,
-                HeaderDef = defineStr,
-            };
-
-            Headers.Add(colName, newHeader);
-            _colCount++;
-
-            return _colCount;
-        }
-
-        public int NewRow()
-        {
-            string[] list = new string[_colCount];
-            int rowId = TabInfo.Count + 1;
-            TabInfo.Add(rowId, list);
-            return rowId;
-        }
-
         public int GetHeight()
         {
-            return TabInfo.Count;
+            return Rows.Count;
         }
 
         public int GetColumnCount()
@@ -288,45 +276,61 @@ namespace CosmosConfigurator
             return _colCount;
         }
 
-        public bool SetValue<T>(int row, int column, T value)
+        public T GetRow(int row)
         {
-            if (row > TabInfo.Count || column > _colCount || row <= 0 || column <= 0)  //  || column > ColIndex.Count
+            T rowT;
+            if (!Rows.TryGetValue(row, out rowT))
             {
-                throw new Exception(string.Format("Wrong row-{0} or column-{1}", row, column));
-                return false;
+                rowT = Rows[row] = new T();
             }
-            string content = Convert.ToString(value);
-            if (row == 0)
-            {
-                foreach (var kv in Headers)
-                {
-                    if (kv.Value.ColumnIndex == column)
-                    {
-                        Headers.Remove(kv.Key);
-                        Headers[content] = kv.Value;
-                        break;
-                    }
-                }
-            }
-            var rowStrs = TabInfo[row];
-            if (column - 1 >= rowStrs.Length) // 超出, 扩充
-            {
-                var oldRowStrs = rowStrs;
-                rowStrs = TabInfo[row] = new string[column];
-                oldRowStrs.CopyTo(rowStrs, 0);
-            }
-            rowStrs[column - 1] = content;
-            return true;
+
+            return rowT;
         }
 
-        public bool SetValue<T>(int row, string columnName, T value)
-        {
-            HeaderInfo headerInfo;
-            if (!Headers.TryGetValue(columnName, out headerInfo))
-                return false;
+        //public bool SetValue<T>(int row, int column, T value) where T : TabRow, 
+        //{
+        //    if (row > Rows.Count || column > _colCount || row <= 0 || column <= 0)  //  || column > ColIndex.Count
+        //    {
+        //        throw new Exception(string.Format("Wrong row-{0} or column-{1}", row, column));
+        //        return false;
+        //    }
+        //    string content = Convert.ToString(value);
+        //    if (row == 0)
+        //    {
+        //        foreach (var kv in Headers)
+        //        {
+        //            if (kv.Value.ColumnIndex == column)
+        //            {
+        //                Headers.Remove(kv.Key);
+        //                Headers[content] = kv.Value;
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    T rowT;
+        //    if (!Rows.TryGetValue(row, out rowT))
+        //    {
+        //        //rowT = Rows[row] = new T();
+        //    }
+        //    var rowStrs = TabInfo[row];
+        //    if (column - 1 >= rowStrs.Length) // 超出, 扩充
+        //    {
+        //        var oldRowStrs = rowStrs;
+        //        rowStrs = TabInfo[row] = new string[column];
+        //        oldRowStrs.CopyTo(rowStrs, 0);
+        //    }
+        //    rowStrs[column - 1] = content;
+        //    return true;
+        //}
 
-            return SetValue(row, headerInfo.ColumnIndex, value);
-        }
+        //public bool SetValue<T>(int row, string columnName, T value)
+        //{
+        //    HeaderInfo headerInfo;
+        //    if (!Headers.TryGetValue(columnName, out headerInfo))
+        //        return false;
+
+        //    return SetValue(row, headerInfo.ColumnIndex, value);
+        //}
 
         //IEnumerator<TabRow3<T>> IEnumerable<TabRow3<T>>.GetEnumerator()
         //{
@@ -352,6 +356,8 @@ namespace CosmosConfigurator
         {
             this.Headers.Clear();
             this.TabInfo.Clear();
+            this.Rows.Clear();
+            this.PrimaryKey2Row.Clear();
         }
 
         public void Close()

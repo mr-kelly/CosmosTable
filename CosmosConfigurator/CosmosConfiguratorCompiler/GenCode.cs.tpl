@@ -10,7 +10,8 @@ namespace {{ NameSpace }}
 	{
 		public static readonly string TabFilePath = "{{ file.TabFilePath }}";
 		{% for field in file.Fields %}
-		public {{ field.Type }} {{ field.Name}};  // {{ field.Comment }}
+		[TabColumnAttribute]
+		public {{ field.Type }} {{ field.Name}} { get; internal set; }  // {{ field.Comment }}
 		{% endfor %}
 
 		public override void Parse(string[] values)
