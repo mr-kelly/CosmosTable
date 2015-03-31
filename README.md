@@ -1,2 +1,20 @@
-# Excel2TSVCompiler
-Parse Excel to TSV(or CSV) and read them as a database table.
+# CosmosTable - 把Excel用作程序的配置编辑器
+
+CosmosTable把Excel文件编译成TSV(CSV)格式的文本文件，方便地进行读取。
+
+## 功能包括：
+
+* 智能编译Excel成TSV文本文件
+* 编译器带有命令行程序，保证让不同的语言调用
+* 自动生成C#解析代码
+
+## 优势：
+
+
+* 简单，会用Excel就可以开工了
+* 使用Excel进行编辑，可乱涂乱画：批注、图表、各种注释，不影响数据编译
+
+
+现应用在Unity3D游戏开发项目中，让策划轻松地对游戏进行配置。
+
+
