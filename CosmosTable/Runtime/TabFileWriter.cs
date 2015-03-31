@@ -8,7 +8,7 @@ namespace CosmosTable
     /// Write the TabFile!
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class TabFileWriter<T> where T : TabRow, new()
+    public class TabFileWriter<T> : IDisposable where T : TabRow, new()
     {
         protected readonly TableFile<T> TabFile;
 
@@ -80,9 +80,9 @@ namespace CosmosTable
 
             try
             {
-                using (FileStream fs = new FileStream(fileName, FileMode.Create))
+                //using (FileStream fs = )
                 {
-                    using (StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8))
+                    using (StreamWriter sw = new StreamWriter(new FileStream(fileName, FileMode.Create), System.Text.Encoding.UTF8))
                     {
                         sw.Write(sb);
 
@@ -137,5 +137,9 @@ namespace CosmosTable
             return TabFile._colCount;
         }
 
+        public void Dispose()
+        {
+            TabFile.Dispose();
+        }
     }
 }

@@ -5,10 +5,6 @@ using System.Reflection;
 
 namespace CosmosTable
 {
-    public class AutoParseAttribute : Attribute
-    {
-        
-    }
     public class TabColumnAttribute : Attribute
     {
 
@@ -45,7 +41,7 @@ namespace CosmosTable
         }
     }
 
-    public partial class TableFile<T> : IDisposable where T : TabRow, new()  // IEnumerable<TabRow3<T>>, 
+    public partial class TableFile<T> : IDisposable where T : TabRow, new()
     {
         private readonly TableFileConfig _config;
 
@@ -384,10 +380,10 @@ namespace CosmosTable
 
         public void Dispose()
         {
-            this.Headers.Clear();
-            this.TabInfo.Clear();
-            this.Rows.Clear();
-            this.PrimaryKey2Row.Clear();
+            Headers.Clear();
+            TabInfo.Clear();
+            Rows.Clear();
+            PrimaryKey2Row.Clear();
         }
 
         public void Close()
