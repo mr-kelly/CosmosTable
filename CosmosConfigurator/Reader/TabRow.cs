@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CosmosConfigurator
+namespace CosmosTable
 {
     public class TabRow
     {

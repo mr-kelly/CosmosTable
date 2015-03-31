@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using Excel;
 using DotLiquid;
 
-namespace CosmosConfigurator
+namespace CosmosTable
 {
     /// <summary>
     /// Invali Excel Exception

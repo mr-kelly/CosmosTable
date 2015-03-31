@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace CosmosConfigurator
+namespace CosmosTable
 {
     public class AutoParseAttribute : Attribute
     {
@@ -27,7 +27,7 @@ namespace CosmosConfigurator
         public string HeaderDef;
     }
 
-    public class TabFileConfig
+    public class TableFileConfig
     {
         public string Content;
 
@@ -35,37 +35,37 @@ namespace CosmosConfigurator
         public Action<string> OnExceptionEvent;
     }
 
-    public class TabFile : TabFile<DefaultTabRow>
+    public class TableFile : TableFile<DefaultTabRow>
     {
-        public TabFile(string content)
+        public TableFile(string content)
             : base(content)
         {
         }
 
-        public TabFile(TabFileConfig config)
+        public TableFile(TableFileConfig config)
             : base(config)
         {
         }
     }
 
-    public partial class TabFile<T> : IDisposable where T : TabRow, new()  // IEnumerable<TabRow3<T>>, 
+    public partial class TableFile<T> : IDisposable where T : TabRow, new()  // IEnumerable<TabRow3<T>>, 
     {
-        private readonly TabFileConfig _config;
+        private readonly TableFileConfig _config;
 
-        public TabFile(string content)
-            : this(new TabFileConfig()
+        public TableFile(string content)
+            : this(new TableFileConfig()
                 {
                     Content = content
                 })
         {
         }
 
-        public TabFile()
-            : this(new TabFileConfig())
+        public TableFile()
+            : this(new TableFileConfig())
         {
         }
 
-        public TabFile(TabFileConfig config)
+        public TableFile(TableFileConfig config)
         {
             _config = config;
 
@@ -95,23 +95,23 @@ namespace CosmosConfigurator
         }
 
         // 直接从字符串分析
-        public static TabFile<T> LoadFromString(string content)
+        public static TableFile<T> LoadFromString(string content)
         {
-            TabFile<T> tabFile = new TabFile<T>(content);
+            TableFile<T> tabFile = new TableFile<T>(content);
             tabFile.ParseString(content);
 
             return tabFile;
         }
 
         // 直接从文件, 传入完整目录，跟通过资源管理器自动生成完整目录不一样，给art库用的
-        public static TabFile<T> LoadFromFile(string fileFullPath)
+        public static TableFile<T> LoadFromFile(string fileFullPath)
         {
             using (FileStream fileStream = new FileStream(fileFullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             // 不会锁死, 允许其它程序打开
             {
 
                 StreamReader oReader = new StreamReader(fileStream, System.Text.Encoding.UTF8);
-                return new TabFile<T>(oReader.ReadToEnd());
+                return new TableFile<T>(oReader.ReadToEnd());
             }
         }
 

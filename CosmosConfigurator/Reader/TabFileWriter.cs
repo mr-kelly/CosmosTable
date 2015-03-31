@@ -7,7 +7,7 @@ using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CosmosConfigurator
+namespace CosmosTable
 {
     /// <summary>
     /// Write the TabFile!
@@ -15,11 +15,11 @@ namespace CosmosConfigurator
     /// <typeparam name="T"></typeparam>
     public class TabFileWriter<T> where T : TabRow, new()
     {
-        protected readonly TabFile<T> TabFile;
+        protected readonly TableFile<T> TabFile;
 
         public TabFileWriter()
         {
-            TabFile = new TabFile<T>();
+            TabFile = new TableFile<T>();
             CheckHeaders();
         }
 
@@ -45,7 +45,7 @@ namespace CosmosConfigurator
             }
             
         }
-        public TabFileWriter(TabFile<T> tabFile)
+        public TabFileWriter(TableFile<T> tabFile)
         {
             TabFile = tabFile;
         }

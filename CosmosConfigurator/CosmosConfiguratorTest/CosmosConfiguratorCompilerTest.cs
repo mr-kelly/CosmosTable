@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CosmosConfigurator;
+using CosmosTable;
 using AppConfigs;
 
-namespace CosmosConfiguratorTest
+namespace CosmosTable.Test
 {
     [TestClass]
     public class CosmosConfiguratorCompilerTest
@@ -26,7 +26,7 @@ namespace CosmosConfiguratorTest
         [TestMethod]
         public void ReadCompliedTsv()
         {
-            var tabFile = TabFile.LoadFromFile("./test_excel.bytes");
+            var tabFile = TableFile.LoadFromFile("./test_excel.bytes");
             Assert.AreEqual<int>(3, tabFile.GetColumnCount());
 
             var headerNames = tabFile.HeaderNames.ToArray();
@@ -38,7 +38,7 @@ namespace CosmosConfiguratorTest
         [TestMethod]
         public void ReadCompliedTsvWithClass()
         {
-            var tabFile = TabFile<TestExcelConfig>.LoadFromFile("./test_excel.bytes");
+            var tabFile = TableFile<TestExcelConfig>.LoadFromFile("./test_excel.bytes");
 
             var config = tabFile.FindByPrimaryKey(1);
 
@@ -80,7 +80,7 @@ namespace CosmosConfiguratorTest
         [TestMethod]
         public void TestWriteTSVRead()
         {
-            var tabFile = TabFile<TestWrite>.LoadFromFile("./test_write.bytes");
+            var tabFile = TableFile<TestWrite>.LoadFromFile("./test_write.bytes");
 
             var tabFileWrite = new TabFileWriter<TestWrite>(tabFile);
 
