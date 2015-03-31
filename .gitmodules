@@ -1,6 +1,0 @@
-[submodule "ExcelDataReader"]
-	path = ExcelDataReader
-	url = https://github.com/ExcelDataReader/ExcelDataReader.git
-[submodule "dotliquid"]
-	path = dotliquid
-	url = https://github.com/dotliquid/dotliquid.git

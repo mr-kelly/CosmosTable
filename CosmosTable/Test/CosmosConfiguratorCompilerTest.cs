@@ -63,14 +63,18 @@ namespace CosmosTable.Test
         /// 测试写入TSV
         /// </summary>
         [TestMethod]
-        public void TestWriteTSV()
+        public void TestWriteTableFile1()
         {
             var tabFileWrite = new TabFileWriter<TestWrite>();
             var newRow = tabFileWrite.NewRow();
             newRow.TestColumn1 = "Test String";
             newRow.TestColumn2 = 123123;
 
-            tabFileWrite.Save("./test_write_2.bytes");
+            tabFileWrite.Save("./test_write.bytes");
+
+
+            var tabFileRead = TableFile<TestWrite>.LoadFromFile("./test_write.bytes");
+            Assert.AreEqual(tabFileRead.GetHeight(), 1);
 
         }
 
@@ -78,7 +82,7 @@ namespace CosmosTable.Test
         /// 读入，然后再写入测试
         /// </summary>
         [TestMethod]
-        public void TestWriteTSVRead()
+        public void TestWriteTableFile2()
         {
             var tabFile = TableFile<TestWrite>.LoadFromFile("./test_write.bytes");
 
@@ -87,6 +91,10 @@ namespace CosmosTable.Test
             var newRow = tabFileWrite.NewRow();
             newRow.TestColumn1 = Path.GetRandomFileName();
             newRow.TestColumn2 = new Random().Next();
+
+
+            // 两个方法执行后
+            Assert.AreEqual(tabFile.GetHeight(), 2);
 
             tabFileWrite.Save("./test_write.bytes");
 
