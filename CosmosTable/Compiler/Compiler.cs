@@ -86,7 +86,7 @@ namespace CosmosTable
             _config = cfg;
         }
 
-        private Hash DoCompiler(string path, FileStream stream)
+        private Hash DoCompiler(string path, FileStream stream, string compileToFilePath = null)
         {
             IExcelDataReader excelReader = null;
             try
@@ -111,7 +111,7 @@ namespace CosmosTable
             {
                 using (excelReader)
                 {
-                    return DoCompilerExcelReader(path, excelReader);
+                    return DoCompilerExcelReader(path, excelReader, compileToFilePath);
                 }
             }
 
@@ -119,7 +119,7 @@ namespace CosmosTable
         }
 
 
-        private Hash DoCompilerExcelReader(string path, IExcelDataReader excelReader)
+        private Hash DoCompilerExcelReader(string path, IExcelDataReader excelReader, string compileToFilePath = null)
         {
             //3. DataSet - The result of each spreadsheet will be created in the result.Tables
             //DataSet result = excelReader.AsDataSet();
@@ -277,7 +277,16 @@ namespace CosmosTable
             }
 
             var fileName = Path.GetFileNameWithoutExtension(path);
-            var exportPath = string.Format("{0}{1}", fileName, _config.ExportTabExt);
+            string exportPath;
+            if (!string.IsNullOrEmpty(compileToFilePath))
+            {
+                exportPath = compileToFilePath;
+            }
+            else
+            {
+                // use default
+                exportPath = string.Format("{0}{1}", fileName, _config.ExportTabExt);
+            }
             File.WriteAllText(exportPath, strBuilder.ToString());
 
 
@@ -287,7 +296,7 @@ namespace CosmosTable
             return Hash.FromAnonymousObject(renderVars);
         } 
 
-        public bool Compile(string path)
+        public bool Compile(string path, string compileToFilePath = null)
         {
             using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
             {
@@ -299,7 +308,7 @@ namespace CosmosTable
                 var files = new List<Hash>();
                 topHash["Files"] = files;
 
-                var hash = DoCompiler(path, stream);
+                var hash = DoCompiler(path, stream, compileToFilePath);
                 files.Add(hash);
                 
                 if (!string.IsNullOrEmpty(_config.ExportCodePath))
