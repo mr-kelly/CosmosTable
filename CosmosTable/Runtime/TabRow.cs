@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CosmosTable
+﻿namespace CosmosTable
 {
     public class TabRow
     {
@@ -42,6 +33,11 @@ namespace CosmosTable
             if (string.IsNullOrEmpty(value))
                 return defaultValue;
             return value;
+        }
+
+        protected int Get_Int32(string value, string defaultValue)
+        {
+            return Get_int(value, defaultValue);
         }
         protected int Get_int(string value, string defaultValue)
         {

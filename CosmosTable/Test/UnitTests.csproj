@@ -55,13 +55,13 @@
     <Compile Include="TabConfigs.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CosmosConfiguratorCompiler\Compiler.csproj">
+    <ProjectReference Include="..\Compiler\Compiler.csproj">
       <Project>{70ba671b-4d9d-4751-ad12-758d20df238f}</Project>
       <Name>Compiler</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Reader\Runtime.csproj">
+    <ProjectReference Include="..\Runtime\Runtime.net4.csproj">
       <Project>{0142e16b-f14c-44d9-93cd-87e0556ab3c0}</Project>
-      <Name>Runtime</Name>
+      <Name>Runtime.net4</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

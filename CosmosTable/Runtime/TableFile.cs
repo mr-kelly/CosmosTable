@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace CosmosTable
 {
@@ -204,9 +201,15 @@ namespace CosmosTable
         {
             get
             {
-                return (from p in typeof(T).GetFields()
-                        from attribute in p.GetCustomAttributes(typeof(TabColumnAttribute), true)
-                        select p).ToArray();
+                List<FieldInfo> fields = new List<FieldInfo>();
+                foreach (var fieldInfo in typeof (T).GetFields())
+                {
+                    if (fieldInfo.GetCustomAttributes(typeof (TabColumnAttribute), true).Length > 0)
+                    {
+                        fields.Add(fieldInfo);
+                    }
+                }
+                return fields.ToArray();
             }
         }
 
@@ -214,7 +217,15 @@ namespace CosmosTable
         {
             get
             {
-				return (from p in typeof(T).GetProperties() from attribute in p.GetCustomAttributes(typeof(TabColumnAttribute), true) select p).ToArray();
+                List<PropertyInfo> props = new List<PropertyInfo>();
+                foreach (var fieldInfo in typeof(T).GetProperties())
+                {
+                    if (fieldInfo.GetCustomAttributes(typeof(TabColumnAttribute), true).Length > 0)
+                    {
+                        props.Add(fieldInfo);
+                    }
+                }
+                return props.ToArray();
             }
         }
 
@@ -241,7 +252,8 @@ namespace CosmosTable
                 var method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
                 if (method != null)
                 {
-                    var index = (from kv in Headers where kv.Value.HeaderName == fieldName select kv.Value.ColumnIndex).First();
+                    // 找寻FieldName所在索引
+                    int index = Headers[fieldName].ColumnIndex;
                     field.SetValue(tabRow, method.Invoke(tabRow, new object[]
                     {
                        cellStrs[index] , null

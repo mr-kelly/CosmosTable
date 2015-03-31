@@ -1,4 +1,4 @@
-﻿using CosmosTable;
+using CosmosTable;
 
 namespace AppConfigs
 {
