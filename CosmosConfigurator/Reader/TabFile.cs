@@ -205,8 +205,7 @@ namespace CosmosConfigurator
             get
             {
                 return (from p in typeof(T).GetFields()
-                        from attribute in p.GetCustomAttributes()
-                        where attribute is TabColumnAttribute
+                        from attribute in p.GetCustomAttributes(typeof(TabColumnAttribute), true)
                         select p).ToArray();
             }
         }
@@ -215,7 +214,7 @@ namespace CosmosConfigurator
         {
             get
             {
-                return (from p in typeof(T).GetProperties() from attribute in p.GetCustomAttributes() where attribute is TabColumnAttribute select p).ToArray();
+				return (from p in typeof(T).GetProperties() from attribute in p.GetCustomAttributes(typeof(TabColumnAttribute), true) select p).ToArray();
             }
         }
 

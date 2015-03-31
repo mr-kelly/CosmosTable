@@ -28,7 +28,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
-    <AssemblyName>CosmosTabConfRuntime_mono</AssemblyName>
+    <AssemblyName>CosmosTabConf.runtime.mono</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -97,8 +97,8 @@ namespace CosmosConfigurator
             }
             catch (IOException e)
             {
+				result = false;
                 throw new Exception("可能文件正在被Excel打开?" + e.Message);
-                result = false;
             }
 
             return result;
