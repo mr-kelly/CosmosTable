@@ -72,7 +72,7 @@ namespace CosmosTable
     /// </summary>
     public class Compiler
     {
-        private CompilerConfig _config;
+        private readonly CompilerConfig _config;
 
         public Compiler()
             : this(new CompilerConfig()
