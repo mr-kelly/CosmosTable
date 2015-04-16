@@ -9,6 +9,9 @@ namespace {{ NameSpace }}
 	public partial class {{file.ClassName}}Config : TabRow
 	{
 		public static readonly string TabFilePath = "{{ file.TabFilePath }}";
+		
+		public override bool IsAutoParse { get { return false; } }
+
 		{% for field in file.Fields %}
 		[TabColumnAttribute]
 		public {{ field.Type }} {{ field.Name}} { get; internal set; }  // {{ field.Comment }}

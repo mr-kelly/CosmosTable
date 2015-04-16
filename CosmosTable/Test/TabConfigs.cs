@@ -10,6 +10,9 @@ namespace AppConfigs
 	{
 		public static readonly string TabFilePath = "test_excel.bytes";
 		
+		public override bool IsAutoParse { get { return false; } }
+
+		
 		[TabColumnAttribute]
 		public int Id { get; internal set; }  // ID Column/编号
 		

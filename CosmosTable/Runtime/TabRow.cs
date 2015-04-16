@@ -4,7 +4,7 @@
     {
         public virtual bool IsAutoParse
         {
-            get { return false; }
+            get { return true; }
         }
         public int RowNumber;
         protected TabRow()

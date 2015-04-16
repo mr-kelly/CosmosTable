@@ -5,9 +5,18 @@ using System.Reflection;
 
 namespace CosmosTable
 {
+    public enum TableFileExceptionType
+    {
+        DuplicatedKey,
+
+        HeadLineNull,
+        StamentLineNull, // 第二行
+        NotFoundHeader,
+        NotFoundGetMethod
+    }
     public class TabColumnAttribute : Attribute
     {
-
+           
     }
 
     /// <summary>
@@ -20,12 +29,13 @@ namespace CosmosTable
         public string HeaderDef;
     }
 
+    public delegate void TableFileExceptionDelegate(TableFileExceptionType exceptionType, object[] args);
     public class TableFileConfig
     {
         public string Content;
 
         public char[] Separators = new char[] { '\t' };
-        public Action<string> OnExceptionEvent;
+        public TableFileExceptionDelegate OnExceptionEvent;
     }
 
     public class TableFile : TableFile<DefaultTabRow>
@@ -114,14 +124,14 @@ namespace CosmosTable
             var headLine = oReader.ReadLine();
             if (headLine == null)
             {
-                OnExeption("Head Line null");
+                OnExeption(TableFileExceptionType.HeadLineNull);
                 return false;
             }
 
             var defLine = oReader.ReadLine(); // 声明行
             if (defLine == null)
             {
-                OnExeption("Statemen Line (Line2) Null");
+                OnExeption(TableFileExceptionType.StamentLineNull);
                 return false;
             }
 
@@ -180,7 +190,7 @@ namespace CosmosTable
                         else  // 原本存在，使用old的， cachedNewObj(newT)因此残留, 留待下回合使用
                         {
                             // Check Duplicated Primary Key, 使用原来的，不使用新new出来的, 下回合直接用_cachedNewObj
-                            OnExeption("[Duplicated Primary Key]: {0}", oldT.PrimaryKey);
+                            OnExeption(TableFileExceptionType.DuplicatedKey, oldT.PrimaryKey);
                             newT = oldT;
                         }
                     }
@@ -234,7 +244,7 @@ namespace CosmosTable
             {
                 if (!HasColumn(field.Name))
                 {
-                    OnExeption("表{0} 找不到表头{1}", type.Name, field.Name);
+                    OnExeption(TableFileExceptionType.NotFoundHeader, type.Name, field.Name);
                     continue;
                 }
                 okFields.Add(field);
@@ -252,12 +262,12 @@ namespace CosmosTable
                     int index = Headers[fieldName].ColumnIndex;
                     field.SetValue(tabRow, method.Invoke(tabRow, new object[]
                     {
-                       cellStrs[index] , null
+                       cellStrs[index-1] , null
                     }));
                 }
                 else
                 {
-                    OnExeption("Not Find the Method {0}", methodName);
+                    OnExeption(TableFileExceptionType.NotFoundGetMethod, methodName);
                 }
             }
 
@@ -277,13 +287,13 @@ namespace CosmosTable
             return Headers.ContainsKey(colName);
         }
 
-        protected internal void OnExeption(string message, params object[] args)
+        protected internal void OnExeption(TableFileExceptionType message, params object[] args)
         {
             if (_config.OnExceptionEvent == null)
-                throw new Exception(string.Format(message, args));
+                throw new Exception(string.Format("{0} - {1}", message, args));
             else
             {
-                _config.OnExceptionEvent(string.Format(message, args));
+                _config.OnExceptionEvent(message, args);
             }
         }
 
