@@ -6,6 +6,8 @@
 *.user
 *.sln.docstates
 
+_gsdata_
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
