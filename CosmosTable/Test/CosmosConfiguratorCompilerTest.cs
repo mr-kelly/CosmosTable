@@ -36,7 +36,7 @@ namespace CosmosTable.Test
         [TestMethod]
         public void ReadCompliedTsvWithClass()
         {
-            var tabFile = TableFile<TestExcelConfig>.LoadFromFile("./test_excel.bytes");
+            var tabFile = TableFile<TestExcelInfo>.LoadFromFile("./test_excel.bytes");
 
             var config = tabFile.FindByPrimaryKey(1);
 

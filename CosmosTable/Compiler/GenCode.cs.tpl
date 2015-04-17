@@ -6,7 +6,7 @@ namespace {{ NameSpace }}
 	/// <summary>
 	/// Auto Generate for Tab File: {{ file.TabFilePath }}
 	/// </summary>
-	public partial class {{file.ClassName}}Config : TabRow
+	public partial class {{file.ClassName}}Info : TableRowInfo
 	{
 		public static readonly string TabFilePath = "{{ file.TabFilePath }}";
 		

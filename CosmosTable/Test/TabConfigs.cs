@@ -6,7 +6,7 @@ namespace AppConfigs
 	/// <summary>
 	/// Auto Generate for Tab File: test_excel.bytes
 	/// </summary>
-	public partial class TestExcelConfig : TabRow
+	public partial class TestExcelInfo : TableRowInfo
 	{
 		public static readonly string TabFilePath = "test_excel.bytes";
 		
