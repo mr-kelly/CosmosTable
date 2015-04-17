@@ -46,7 +46,7 @@ namespace CosmosTable.Test
 
 
 
-        class TestWrite : TabRow
+        class TestWrite : TableRowInfo
         {
             public override bool IsAutoParse
             {
