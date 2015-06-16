@@ -13,13 +13,10 @@ namespace AppConfigs
 		public override bool IsAutoParse { get { return false; } }
 
 		
-		[TabColumnAttribute]
 		public int Id { get; internal set; }  // ID Column/编号
 		
-		[TabColumnAttribute]
 		public string Name { get; internal set; }  // Name/名字
 		
-		[TabColumnAttribute]
 		public string[] StrArray { get; internal set; }  // ArrayTest/测试数组
 		
 

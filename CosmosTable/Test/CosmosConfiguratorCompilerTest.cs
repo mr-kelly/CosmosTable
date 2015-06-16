@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,8 +16,12 @@ namespace CosmosTable.Test
             var compiler = new Compiler(
                 new CompilerConfig
                 {
+                    CodeTemplates = new Dictionary<string, string>()
+                    {
+                        {File.ReadAllText("./GenCode.cs.tpl"), "../../TabConfigs.cs"},  // code template -> CodePath
+                    },
                     ExportTabExt = ".bytes",
-                    ExportCodePath = "../../TabConfigs.cs",
+                    
                 });
             Assert.IsTrue(compiler.Compile("./test_excel.xls"));
         }
@@ -53,8 +58,8 @@ namespace CosmosTable.Test
                 get { return true; }
             }
 
-            [TabColumn] public string TestColumn1;
-            [TabColumn] public int TestColumn2;
+            public string TestColumn1;
+            public int TestColumn2;
         }
 
         /// <summary>

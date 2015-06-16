@@ -13,7 +13,6 @@ namespace {{ NameSpace }}
 		public override bool IsAutoParse { get { return false; } }
 
 		{% for field in file.Fields %}
-		[TabColumnAttribute]
 		public {{ field.Type }} {{ field.Name}} { get; internal set; }  // {{ field.Comment }}
 		{% endfor %}
 
