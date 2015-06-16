@@ -33,6 +33,7 @@ namespace CosmosTable
         public TabFileWriter(TableFile<T> tabFile)
         {
             TabFile = tabFile;
+            CheckHeaders();
         }
 
         // 将当前保存成文件
@@ -93,6 +94,10 @@ namespace CosmosTable
             return newRow;
         }
 
+        public bool RemoveRow(int row)
+        {
+            return TabFile.Rows.Remove(row);
+        }
         public T GetRow(int row)
         {
             object rowT;
