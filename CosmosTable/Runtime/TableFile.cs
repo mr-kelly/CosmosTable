@@ -12,7 +12,8 @@ namespace CosmosTable
         HeadLineNull,
         StamentLineNull, // 第二行
         NotFoundHeader,
-        NotFoundGetMethod
+        NotFoundGetMethod,
+        NotFoundPrimaryKey,
     }
 
     /// <summary>
@@ -167,7 +168,7 @@ namespace CosmosTable
 
                     T newT = new T();  // the New Object may not be used this time, so cache it!
                     newT.RowNumber = rowIndex;
-                    
+
                     if (!newT.IsAutoParse)
                         newT.Parse(splitString1);
                     else
@@ -182,7 +183,7 @@ namespace CosmosTable
                         }
                         else  // 原本存在，使用old的， cachedNewObj(newT)因此残留, 留待下回合使用
                         {
-                            T toT = (T) oldT;
+                            T toT = (T)oldT;
                             // Check Duplicated Primary Key, 使用原来的，不使用新new出来的, 下回合直接用_cachedNewObj
                             OnExeption(TableFileExceptionType.DuplicatedKey, toT.PrimaryKey);
                             newT = toT;
@@ -252,7 +253,7 @@ namespace CosmosTable
                     var headerDef = Headers[fieldName].HeaderDef;
                     if (!string.IsNullOrEmpty(headerDef))
                     {
-                        var defs = headerDef.Split(new []{'[', ']', ':'}, StringSplitOptions.RemoveEmptyEntries);
+                        var defs = headerDef.Split(new[] { '[', ']', ':' }, StringSplitOptions.RemoveEmptyEntries);
                         //if (defs.Length >= 1) szType = defs[0];
                         if (defs.Length >= 2) defaultValue = defs[1];
                     }
@@ -411,9 +412,13 @@ namespace CosmosTable
         public T FindByPrimaryKey(object primaryKey)
         {
             object ret;
-            var retT = PrimaryKey2Row.TryGetValue(primaryKey, out ret) ? ret : default(T);
 
-            return (T) retT;
+            if (PrimaryKey2Row.TryGetValue(primaryKey, out ret))
+                return (T) ret;
+            else
+            {
+                return default(T);
+            }
         }
     }
 }

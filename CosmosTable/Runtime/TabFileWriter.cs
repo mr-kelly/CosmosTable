@@ -10,7 +10,7 @@ namespace CosmosTable
     /// <typeparam name="T"></typeparam>
     public class TabFileWriter<T> : IDisposable where T : TableRowInfo, new()
     {
-        protected readonly TableFile<T> TabFile;
+        public readonly TableFile<T> TabFile;
 
         public TabFileWriter()
         {
@@ -39,49 +39,52 @@ namespace CosmosTable
         // 将当前保存成文件
         public bool Save(string fileName)
         {
-            bool result = false;
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var header in TabFile.Headers.Values)
-                sb.Append(string.Format("{0}\t", header.HeaderName));
-            sb.Append("\r\n");
-
-            foreach (var header in TabFile.Headers.Values)
-                sb.Append(string.Format("{0}\t", header.HeaderDef));
-            sb.Append("\r\n");
-
-            // 获取所有值
-            foreach (var kv in TabFile.Rows)
+            lock (this)
             {
-                var rowT = kv.Value;
-                foreach (var field in TabFile.AutoTabFields)
-                {
-                    var retVal = field.GetValue(rowT);
-                    sb.Append(retVal);
-                    sb.Append('\t');
-                }
+                bool result = false;
+                StringBuilder sb = new StringBuilder();
+
+                foreach (var header in TabFile.Headers.Values)
+                    sb.Append(string.Format("{0}\t", header.HeaderName));
                 sb.Append("\r\n");
-            }
 
-            try
-            {
-                //using (FileStream fs = )
+                foreach (var header in TabFile.Headers.Values)
+                    sb.Append(string.Format("{0}\t", header.HeaderDef));
+                sb.Append("\r\n");
+
+                // 获取所有值
+                foreach (var kv in TabFile.Rows)
                 {
-                    using (StreamWriter sw = new StreamWriter(new FileStream(fileName, FileMode.Create), System.Text.Encoding.UTF8))
+                    var rowT = kv.Value;
+                    foreach (var field in TabFile.AutoTabFields)
                     {
-                        sw.Write(sb);
+                        var retVal = field.GetValue(rowT);
+                        sb.Append(retVal);
+                        sb.Append('\t');
+                    }
+                    sb.Append("\r\n");
+                }
 
-                        result = true;
+                try
+                {
+                    //using (FileStream fs = )
+                    {
+                        using (StreamWriter sw = new StreamWriter(new FileStream(fileName, FileMode.Create), System.Text.Encoding.UTF8))
+                        {
+                            sw.Write(sb);
+
+                            result = true;
+                        }
                     }
                 }
-            }
-            catch (IOException e)
-            {
-				result = false;
-                throw new Exception("可能文件正在被Excel打开?" + e.Message);
-            }
+                catch (IOException e)
+                {
+                    result = false;
+                    throw new Exception("可能文件正在被Excel打开?" + e.Message);
+                }
 
-            return result;
+                return result;
+            }
         }
 
         public T NewRow()
