@@ -98,7 +98,6 @@ namespace CosmosTable
         public static TableFile<T> LoadFromString(string content)
         {
             TableFile<T> tabFile = new TableFile<T>(content);
-            tabFile.ParseString(content);
 
             return tabFile;
         }
@@ -288,7 +287,16 @@ namespace CosmosTable
         protected internal void OnExeption(TableFileExceptionType message, params object[] args)
         {
             if (_config.OnExceptionEvent == null)
-                throw new Exception(string.Format("{0} - {1}", message, args));
+            {
+                string[] argsStrs = new string[args.Length];
+                for (var i = 0; i < argsStrs.Length; i++)
+                {
+                    var arg = args[i];
+                    if (arg == null) continue;
+                    argsStrs[i] = arg.ToString();
+                }
+                throw new Exception(string.Format("{0} - {1}", message, string.Join("|", argsStrs)));
+            }
             else
             {
                 _config.OnExceptionEvent(message, args);
