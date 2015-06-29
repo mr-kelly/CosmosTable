@@ -50,7 +50,6 @@ namespace CosmosTable.Test
         }
 
 
-
         class TestWrite : TableRowInfo
         {
             public override bool IsAutoParse
@@ -100,6 +99,25 @@ namespace CosmosTable.Test
             Assert.AreEqual(tabFile.GetHeight(), 2);
 
             tabFileWrite.Save("./test_write.bytes");
+
+        }
+
+        /// <summary>
+        /// 测试删除一行
+        /// </summary>
+        [TestMethod]
+        public void TestRemoveRowTableFile1()
+        {
+            var tabFileWrite = new TabFileWriter<TestWrite>();
+            var newRow = tabFileWrite.NewRow();
+            newRow.TestColumn1 = "Test String";
+            newRow.TestColumn2 = 123123;
+            tabFileWrite.RemoveRow(newRow.RowNumber);  // remove row 1
+            tabFileWrite.Save("./test_write.bytes");
+
+
+            var tabFileRead = TableFile<TestWrite>.LoadFromFile("./test_write.bytes");
+            Assert.AreEqual(tabFileRead.GetHeight(), 0);
 
         }
     }
