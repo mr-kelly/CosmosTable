@@ -35,7 +35,7 @@ namespace CosmosTable
         public List<Hash> Fields
         {
             get { return (from f in FieldsInternal select Hash.FromAnonymousObject(f)).ToList(); }
-        } 
+        }
 
         public List<Hash> Columns2DefaultValus { get; set; } // column + Default Values
         public string PrimaryKey { get; set; }
@@ -61,9 +61,18 @@ namespace CosmosTable
         public Dictionary<string, string> CodeTemplates;
         public string ExportTabExt = ".bytes";
 
-        public string[] CommentColumnStartsWith = {"Comment", "#"};
+        public string[] CommentColumnStartsWith = { "Comment", "#" };
 
         public string NameSpace = "AppConfigs";
+
+        public CompilerConfig()
+        {
+            // Default C# Code Templates
+            CodeTemplates = new Dictionary<string, string>()
+            {
+                {File.ReadAllText("./GenCode.cs.tpl"), "TabConfigs.cs"}, // code template -> CodePath
+            };
+        }
     }
 
     /// <summary>
@@ -140,7 +149,7 @@ namespace CosmosTable
 
             var ignoreColumns = new HashSet<int>();
             var ignoreRows = new HashSet<int>();
-            
+
             // 寻找注释行，1,或2行
             var hasStatementRow = false;
             var statementRow = sheet1.Rows[0].ItemArray;
@@ -158,7 +167,7 @@ namespace CosmosTable
 
                 break;
             }
-            
+
             // 获取注释行
             var commentRow = hasStatementRow ? sheet1.Rows[1].ItemArray : sheet1.Rows[0].ItemArray;
             var commentsOfColumns = new List<string>();
@@ -195,13 +204,13 @@ namespace CosmosTable
 
                         string typeName = "string";
                         string defaultVal = "";
-                        
+
                         if (hasStatementRow)
                         {
                             var match = regExCheckStatement.Match(statementRow[colIndex].ToString());
                             var attrs = match.Groups[1].ToString().Split(':');
                             // Type
-                            
+
                             if (attrs.Length > 0)
                             {
                                 typeName = attrs[0];
@@ -247,7 +256,7 @@ namespace CosmosTable
                     {
                         rowIndex++;
                         continue;
-                        
+
                     }
                 }
                 else
@@ -301,7 +310,7 @@ namespace CosmosTable
             renderVars.TabFilePath = exportPath;
 
             return Hash.FromAnonymousObject(renderVars);
-        } 
+        }
 
         public bool Compile(string path, string compileToFilePath = null)
         {

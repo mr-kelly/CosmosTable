@@ -4,12 +4,24 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AppConfigs;
+using CosmosTable.Command;
 
 namespace CosmosTable.Test
 {
     [TestClass]
     public class CosmosConfiguratorCompilerTest
     {
+        [TestMethod]
+        public void CommandLine1()
+        {
+            CommandProgram.Run(new string[]
+            {
+                "./*.xls"
+            });
+            Assert.IsTrue(File.Exists("TabConfigs.cs"));
+            var table = TableFile.LoadFromFile("./test_excel.bytes");
+            ReadCompliedTsv();
+        }
         [TestMethod]
         public void CompileTestExcel()
         {
@@ -21,7 +33,7 @@ namespace CosmosTable.Test
                         {File.ReadAllText("./GenCode.cs.tpl"), "../../TabConfigs.cs"},  // code template -> CodePath
                     },
                     ExportTabExt = ".bytes",
-                    
+
                 });
             Assert.IsTrue(compiler.Compile("./test_excel.xls"));
         }

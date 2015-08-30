@@ -20,7 +20,7 @@ namespace CosmosTable.Command
         //public bool SwitchArgument { get; set; }
     }
 
-    class CommandProgram
+    public class CommandProgram
     {
         static void RunApplication(MyArguments args)
         {
@@ -37,7 +37,8 @@ namespace CosmosTable.Command
                 }
             }
         }
-        static void Main(string[] args)
+
+        public static void Run(string[] args)
         {
             CommandLineParser parser = new CommandLineParser(typeof(MyArguments));
             try
@@ -51,6 +52,10 @@ namespace CosmosTable.Command
                 parser.WriteUsageToConsole();
             }
 
+        }
+        static void Main(string[] args)
+        {
+            Run(args);
         }
     }
 }

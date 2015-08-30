@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandProgram", "CommandLine\CommandProgram.csproj", "{13E40BD0-7A77-4371-9065-8222AFD6ABDF}"
 EndProject
@@ -12,8 +12,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "Test\UnitTests.csproj", "{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime.mono", "Runtime\Runtime.mono.csproj", "{EDB4E7E7-4559-4748-86A9-8F40DFA44B75}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelManager", "ExcelManager\ExcelManager.csproj", "{C1C8AAEF-68C4-43AA-B041-3B079CD64317}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +39,6 @@ Global
 		{EDB4E7E7-4559-4748-86A9-8F40DFA44B75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDB4E7E7-4559-4748-86A9-8F40DFA44B75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDB4E7E7-4559-4748-86A9-8F40DFA44B75}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C1C8AAEF-68C4-43AA-B041-3B079CD64317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C1C8AAEF-68C4-43AA-B041-3B079CD64317}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C1C8AAEF-68C4-43AA-B041-3B079CD64317}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C1C8AAEF-68C4-43AA-B041-3B079CD64317}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
