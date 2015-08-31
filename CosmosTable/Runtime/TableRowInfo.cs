@@ -38,6 +38,16 @@ namespace CosmosTable
         {
             return Get_int(value, defaultValue);
         }
+        protected bool Get_Boolean(string value, string defaultValue)
+        {
+            var str = Get_string(value, defaultValue);
+            bool result;
+            if (bool.TryParse(str, out result))
+            {
+                return result;
+            }
+            return Get_int(value, defaultValue) != 0;
+        }
         protected int Get_int(string value, string defaultValue)
         {
             var str = Get_string(value, defaultValue);
