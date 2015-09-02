@@ -16,11 +16,22 @@ namespace CosmosTable.Test
         {
             CommandProgram.Run(new string[]
             {
-                "./*.xls"
+                "-Folder", "./*.xls"
             });
             Assert.IsTrue(File.Exists("TabConfigs.cs"));
             var table = TableFile.LoadFromFile("./test_excel.bytes");
             ReadCompliedTsv();
+        }
+        [TestMethod]
+        public void CommandLine2()
+        {
+            CommandProgram.Run(new string[]
+            {
+                "-Script", "./test.lua"
+            });
+            //Assert.IsTrue(File.Exists("TabConfigs.cs"));
+            //var table = TableFile.LoadFromFile("./test_excel.bytes");
+            //ReadCompliedTsv();
         }
         [TestMethod]
         public void CompileTestExcel()
