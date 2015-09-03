@@ -59,13 +59,13 @@
       <Project>{13E40BD0-7A77-4371-9065-8222AFD6ABDF}</Project>
       <Name>CommandProgram</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Compiler\Compiler.csproj">
+    <ProjectReference Include="..\Compiler\CosmosTable.Compiler.csproj">
       <Project>{70ba671b-4d9d-4751-ad12-758d20df238f}</Project>
-      <Name>Compiler</Name>
+      <Name>CosmosTable.Compiler</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Runtime\Runtime.net4.csproj">
+    <ProjectReference Include="..\Runtime\CosmosTable.Runtime.net4.csproj">
       <Project>{0142e16b-f14c-44d9-93cd-87e0556ab3c0}</Project>
-      <Name>Runtime.net4</Name>
+      <Name>CosmosTable.Runtime.net4</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

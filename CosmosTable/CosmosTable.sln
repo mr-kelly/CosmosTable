@@ -5,13 +5,13 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandProgram", "CommandLine\CommandProgram.csproj", "{13E40BD0-7A77-4371-9065-8222AFD6ABDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compiler", "Compiler\Compiler.csproj", "{70BA671B-4D9D-4751-AD12-758D20DF238F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosTable.Compiler", "Compiler\CosmosTable.Compiler.csproj", "{70BA671B-4D9D-4751-AD12-758D20DF238F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime.net4", "Runtime\Runtime.net4.csproj", "{0142E16B-F14C-44D9-93CD-87E0556AB3C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosTable.Runtime.net4", "Runtime\CosmosTable.Runtime.net4.csproj", "{0142E16B-F14C-44D9-93CD-87E0556AB3C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "Test\UnitTests.csproj", "{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosTable.Tests", "Test\CosmosTable.Tests.csproj", "{C0A013A4-62E2-46CA-879A-C8A4F7837E9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime.mono", "Runtime\Runtime.mono.csproj", "{EDB4E7E7-4559-4748-86A9-8F40DFA44B75}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosTable.Runtime.mono", "Runtime\CosmosTable.Runtime.mono.csproj", "{EDB4E7E7-4559-4748-86A9-8F40DFA44B75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

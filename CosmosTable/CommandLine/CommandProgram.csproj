@@ -57,9 +57,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Compiler\Compiler.csproj">
+    <ProjectReference Include="..\Compiler\CosmosTable.Compiler.csproj">
       <Project>{70BA671B-4D9D-4751-AD12-758D20DF238F}</Project>
-      <Name>Compiler</Name>
+      <Name>CosmosTable.Compiler</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
