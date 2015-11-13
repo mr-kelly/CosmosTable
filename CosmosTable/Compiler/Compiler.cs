@@ -96,13 +96,9 @@ namespace CosmosTable
 
         private Hash DoCompiler(string path, FileStream stream, string compileToFilePath = null)
         {
+            var fileExt = Path.GetExtension(path);
             IExcelDataReader excelReader = null;
-            try
-            {
-                //1. Reading from a binary Excel file ('97-2003 format; *.xls)
-                excelReader = ExcelReaderFactory.CreateBinaryReader(stream);
-            }
-            catch (Exception)
+            if (fileExt == ".xlsx" || fileExt == ".xml")
             {
                 try
                 {
@@ -111,9 +107,22 @@ namespace CosmosTable
                 }
                 catch (Exception e2)
                 {
-                    throw new InvalidExcelException("Cannot read Excel File : " + path + e2.Message);
+                    throw new InvalidExcelException("Cannot read Excel 2007 File : " + path + e2.Message);
                 }
             }
+            else
+            {
+                try
+                {
+                    //1. Reading from a binary Excel file ('97-2003 format; *.xls)
+                    excelReader = ExcelReaderFactory.CreateBinaryReader(stream);
+                }
+                catch (Exception e2)
+                {
+                    throw new InvalidExcelException("Cannot read Excel 2003 File : " + path + e2.Message);
+                }
+            }
+
 
             if (excelReader != null)
             {

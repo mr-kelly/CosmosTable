@@ -34,7 +34,7 @@ namespace CosmosTable.Test
             //ReadCompliedTsv();
         }
         [TestMethod]
-        public void CompileTestExcel()
+        public void CompileTestExcel2003()
         {
             var compiler = new Compiler(
                 new CompilerConfig
@@ -48,7 +48,21 @@ namespace CosmosTable.Test
                 });
             Assert.IsTrue(compiler.Compile("./test_excel.xls"));
         }
+        [TestMethod]
+        public void CompileTestExcelOpenXml()
+        {
+            var compiler = new Compiler(
+                new CompilerConfig
+                {
+                    CodeTemplates = new Dictionary<string, string>()
+                    {
+                        {File.ReadAllText("./GenCode.cs.tpl"), "../../TabConfigs.cs"},  // code template -> CodePath
+                    },
+                    ExportTabExt = ".bytes",
 
+                });
+            Assert.IsTrue(compiler.Compile("./test_excel.xlsx"));
+        }
         [TestMethod]
         public void ReadCompliedTsv()
         {
