@@ -50,7 +50,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="CosmosConfiguratorCompilerTest.cs" />
+    <Compile Include="CosmosTableTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TabConfigs.cs" />
   </ItemGroup>

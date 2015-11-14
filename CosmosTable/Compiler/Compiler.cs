@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Excel;
 using DotLiquid;
+using NPOI;
 
 namespace CosmosTable
 {
@@ -61,6 +62,7 @@ namespace CosmosTable
         public Dictionary<string, string> CodeTemplates;
         public string ExportTabExt = ".bytes";
 
+        // 被认为是注释的表头
         public string[] CommentColumnStartsWith = { "Comment", "#" };
 
         public string NameSpace = "AppConfigs";
@@ -94,113 +96,105 @@ namespace CosmosTable
             _config = cfg;
         }
 
-        private Hash DoCompiler(string path, FileStream stream, string compileToFilePath = null)
+        private Hash DoCompiler(string path, SimpleExcelFile excelFile, string compileToFilePath = null)
         {
             var fileExt = Path.GetExtension(path);
-            IExcelDataReader excelReader = null;
-            if (fileExt == ".xlsx" || fileExt == ".xml")
-            {
-                try
-                {
-                    //2. Reading from a OpenXml Excel file (2007 format; *.xlsx)
-                    excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
-                }
-                catch (Exception e2)
-                {
-                    throw new InvalidExcelException("Cannot read Excel 2007 File : " + path + e2.Message);
-                }
-            }
-            else
-            {
-                try
-                {
-                    //1. Reading from a binary Excel file ('97-2003 format; *.xls)
-                    excelReader = ExcelReaderFactory.CreateBinaryReader(stream);
-                }
-                catch (Exception e2)
-                {
-                    throw new InvalidExcelException("Cannot read Excel 2003 File : " + path + e2.Message);
-                }
-            }
+            //IExcelDataReader excelReader = null;
+            //if (fileExt == ".xlsx" || fileExt == ".xml")
+            //{
+            //    try
+            //    {
+            //        //2. Reading from a OpenXml Excel file (2007 format; *.xlsx)
+            //        excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+            //    }
+            //    catch (Exception e2)
+            //    {
+            //        throw new InvalidExcelException("Cannot read Excel 2007 File : " + path + e2.Message);
+            //    }
+            //}
+            //else
+            //{
+            //    try
+            //    {
+            //        //1. Reading from a binary Excel file ('97-2003 format; *.xls)
+            //        excelReader = ExcelReaderFactory.CreateBinaryReader(stream);
+            //    }
+            //    catch (Exception e2)
+            //    {
+            //        throw new InvalidExcelException("Cannot read Excel 2003 File : " + path + e2.Message);
+            //    }
+            //}
 
 
-            if (excelReader != null)
-            {
-                using (excelReader)
-                {
-                    return DoCompilerExcelReader(path, excelReader, compileToFilePath);
-                }
-            }
-
-            return null;
+            //if (excelReader != null)
+            //{
+            //    using (excelReader)
+            //    {
+                    
+            //    }
+            //}
+            return DoCompilerExcelReader(path, excelFile, compileToFilePath);
         }
 
 
-        private Hash DoCompilerExcelReader(string path, IExcelDataReader excelReader, string compileToFilePath = null)
+        private Hash DoCompilerExcelReader(string path, SimpleExcelFile excelFile, string compileToFilePath = null)
         {
             //3. DataSet - The result of each spreadsheet will be created in the result.Tables
             //DataSet result = excelReader.AsDataSet();
 
             //4. DataSet - Create column names from first row
-            excelReader.IsFirstRowAsColumnNames = true;
-            DataSet result = excelReader.AsDataSet();
+            //excelFile.IsFirstRowAsColumnNames = true;
+            
 
-            if (result.Tables.Count <= 0)
-                throw new InvalidExcelException("No Sheet!");
+            //DataSet result = excelFile.AsDataSet();
+
+            //if (result.Tables.Count <= 0)
+            //    throw new InvalidExcelException("No Sheet!");
 
 
             var renderVars = new RenderTemplateVars();
             renderVars.FieldsInternal = new List<RenderFieldVars>();
 
-            var sheet1 = result.Tables[0];
+            //var sheet1 = result.Tables[0];
 
             var strBuilder = new StringBuilder();
 
             var ignoreColumns = new HashSet<int>();
             var ignoreRows = new HashSet<int>();
 
-            // 寻找注释行，1,或2行
-            var hasStatementRow = false;
-            var statementRow = sheet1.Rows[0].ItemArray;
+            //// 寻找注释行，1,或2行
+            //var hasStatementRow = false;
+            //var statementRow = sheet1.Rows[0].ItemArray;
             var regExCheckStatement = new Regex(@"\[(.*)\]");
-            foreach (var cellVal in statementRow)
-            {
-                if ((cellVal is string))
-                {
-                    var matches = regExCheckStatement.Matches(cellVal.ToString());
-                    if (matches.Count > 0)
-                    {
-                        hasStatementRow = true;
-                    }
-                }
+            //foreach (var cellVal in statementRow)
+            //{
+            //    if ((cellVal is string))
+            //    {
+            //        var matches = regExCheckStatement.Matches(cellVal.ToString());
+            //        if (matches.Count > 0)
+            //        {
+            //            hasStatementRow = true;
+            //        }
+            //    }
 
-                break;
-            }
+            //    break;
+            //}
 
-            // 获取注释行
-            var commentRow = hasStatementRow ? sheet1.Rows[1].ItemArray : sheet1.Rows[0].ItemArray;
-            var commentsOfColumns = new List<string>();
-            foreach (var cellVal in commentRow)
-            {
-                commentsOfColumns.Add(cellVal.ToString());
-            }
+            //// 获取注释行
+            //var commentRow = hasStatementRow ? sheet1.Rows[1].ItemArray : sheet1.Rows[0].ItemArray;
+            //var commentsOfColumns = new List<string>();
+            //foreach (var cellVal in commentRow)
+            //{
+            //    commentsOfColumns.Add(cellVal.ToString());
+            //}
 
-            // Header
-            int colIndex = 0;
-            foreach (DataColumn column in sheet1.Columns)
+            // Header Column
+            foreach(var colNameStr in excelFile.ColName2Index.Keys)
             {
-                var colNameStr = column.ColumnName.Trim();
+                var colIndex = excelFile.ColName2Index[colNameStr];
                 if (!string.IsNullOrEmpty(colNameStr))
                 {
-                    var isCommentColumn = false;
-                    foreach (var commentStartsWith in _config.CommentColumnStartsWith)
-                    {
-                        if (colNameStr.StartsWith(commentStartsWith))
-                        {
-                            isCommentColumn = true;
-                            break;
-                        }
-                    }
+                    var isCommentColumn = CheckCommentColumn(colNameStr);
                     if (isCommentColumn)
                     {
                         ignoreColumns.Add(colIndex);
@@ -214,12 +208,8 @@ namespace CosmosTable
                         string typeName = "string";
                         string defaultVal = "";
 
-                        if (hasStatementRow)
-                        {
-                            var match = regExCheckStatement.Match(statementRow[colIndex].ToString());
-                            var attrs = match.Groups[1].ToString().Split(':');
+                            var attrs = excelFile.ColName2Statement[colNameStr].Split(',');
                             // Type
-
                             if (attrs.Length > 0)
                             {
                                 typeName = attrs[0];
@@ -237,69 +227,105 @@ namespace CosmosTable
                                 }
                             }
 
-                        }
-
                         renderVars.FieldsInternal.Add(new RenderFieldVars
                         {
                             Index = colIndex,
                             Type = typeName,
                             Name = colNameStr,
                             DefaultValue = defaultVal,
-                            Comment = commentsOfColumns[colIndex],
+                            Comment = excelFile.ColName2Comment[colNameStr],
                         });
-                        //codeGentor.Columns2DefaultValus.Add(colNameStr, defaultVal);
                     }
                 }
-                colIndex++;
             }
             strBuilder.Append("\n");
 
-            // Rows
-            var rowIndex = 1;
-            foreach (DataRow dRow in sheet1.Rows)
+            // Statements rows, keeps
+            foreach (var kv in excelFile.ColName2Statement)
             {
-                if (hasStatementRow)
-                {
-                    // 有声明行，忽略第2行
-                    if (rowIndex == 2)
-                    {
-                        rowIndex++;
-                        continue;
+                var colName = kv.Key;
+                var statementStr = kv.Value;
+                var colIndex = excelFile.ColName2Index[colName];
 
-                    }
-                }
-                else
-                {
-                    // 无声明行，忽略第1行
-                    if (rowIndex == 1)
-                    {
-                        rowIndex++;
-                        continue;
-                    }
-                }
+                if (ignoreColumns.Contains(colIndex)) // comment column, ignore
+                    continue;
+                if (colIndex > 0)
+                    strBuilder.Append("\t");
+                strBuilder.Append(statementStr);
+            }
+            strBuilder.Append("\n");
 
-                colIndex = 0;
-                foreach (var item in dRow.ItemArray)
+            // Data Rows
+            //var rowIndex = 1;
+            //foreach (DataRow dRow in sheet1.Rows)
+            for (var startRow = 0; startRow < excelFile.GetRowsCount(); startRow++)
+            {
+                var columnCount = excelFile.GetColumnCount();
+                for (var loopColumn = 0; loopColumn < columnCount; loopColumn++)
                 {
-                    if (ignoreColumns.Contains(colIndex)) // comment column, ignore
+                    if (ignoreColumns.Contains(loopColumn)) // comment column, ignore
                         continue;
-
-                    if (colIndex > 0)
+                    if (loopColumn > 0)
                         strBuilder.Append("\t");
+                    var columnName = excelFile.Index2ColName[loopColumn];
+                    var cellStr = excelFile.GetString(columnName, startRow);
+                    //        // 如果单元格是字符串，换行符改成\\n
+                    //        if (item is string)
+                    //        {
+                    //            var sItme = item as string;
+                    //            cloneItem = sItme.Replace("\n", "\\n");
+                    //        }
+                    //        strBuilder.Append(cloneItem);
+                    //        colIndex++;
 
-                    var cloneItem = item;
-                    // 如果单元格是字符串，换行符改成\\n
-                    if (item is string)
-                    {
-                        var sItme = item as string;
-                        cloneItem = sItme.Replace("\n", "\\n");
-                    }
-                    strBuilder.Append(cloneItem);
-                    colIndex++;
+                    cellStr = cellStr.Replace("\n", "\\n");
+                    strBuilder.Append(cellStr);
+
                 }
                 strBuilder.Append("\n");
-                rowIndex++;
             }
+            //if (hasStatementRow)
+                //{
+                //    // 有声明行，忽略第2行
+                //    if (rowIndex == 2)
+                //    {
+            //            rowIndex++;
+            //            continue;
+
+            //        }
+            //    }
+            //    else
+            //    {
+            //        // 无声明行，忽略第1行
+            //        if (rowIndex == 1)
+            //        {
+            //            rowIndex++;
+            //            continue;
+            //        }
+            //    }
+
+            //    colIndex = 0;
+                //foreach (var item in dRow.ItemArray)
+            //    {
+            //        if (ignoreColumns.Contains(colIndex)) // comment column, ignore
+            //            continue;
+
+            //        if (colIndex > 0)
+            //            strBuilder.Append("\t");
+
+            //        var cloneItem = item;
+            //        // 如果单元格是字符串，换行符改成\\n
+            //        if (item is string)
+            //        {
+            //            var sItme = item as string;
+            //            cloneItem = sItme.Replace("\n", "\\n");
+            //        }
+            //        strBuilder.Append(cloneItem);
+            //        colIndex++;
+            //    }
+            //    strBuilder.Append("\n");
+            //    rowIndex++;
+            //}
 
             var fileName = Path.GetFileNameWithoutExtension(path);
             string exportPath;
@@ -321,9 +347,28 @@ namespace CosmosTable
             return Hash.FromAnonymousObject(renderVars);
         }
 
+        /// <summary>
+        /// 检查一个表头名，是否是可忽略的注释
+        /// </summary>
+        /// <param name="colNameStr"></param>
+        /// <returns></returns>
+        private bool CheckCommentColumn(string colNameStr)
+        {
+            foreach (var commentStartsWith in _config.CommentColumnStartsWith)
+            {
+                if (colNameStr.StartsWith(commentStartsWith))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool Compile(string path, string compileToFilePath = null)
         {
-            using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
+            //using (FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read))
+            //using (
+            var excelFile = new SimpleExcelFile(path);
             {
 
                 foreach (var kv in _config.CodeTemplates)
@@ -338,7 +383,7 @@ namespace CosmosTable
                     var files = new List<Hash>();
                     topHash["Files"] = files;
 
-                    var hash = DoCompiler(path, stream, compileToFilePath);
+                    var hash = DoCompiler(path, excelFile, compileToFilePath);
                     files.Add(hash);
 
                     if (!string.IsNullOrEmpty(exportPath))

@@ -9,7 +9,7 @@ using CosmosTable.Command;
 namespace CosmosTable.Test
 {
     [TestClass]
-    public class CosmosConfiguratorCompilerTest
+    public class CosmosTableTests
     {
         [TestMethod]
         public void CommandLine1()
@@ -32,6 +32,17 @@ namespace CosmosTable.Test
             //Assert.IsTrue(File.Exists("TabConfigs.cs"));
             //var table = TableFile.LoadFromFile("./test_excel.bytes");
             //ReadCompliedTsv();
+        }
+
+        [TestMethod]
+        public void TestSimpleExcelFile()
+        {
+            var excelFile = new SimpleExcelFile("./test_excel.xlsx");
+            Assert.IsTrue(excelFile.ColName2Index.ContainsKey("Id"));
+            Assert.IsTrue(excelFile.ColName2Index.ContainsKey("Name"));
+            Assert.AreEqual(excelFile.ColName2Index["Name"], 1);
+            Assert.AreEqual(excelFile.HasColumn("Name"), true);
+
         }
         [TestMethod]
         public void CompileTestExcel2003()
