@@ -6,11 +6,13 @@ namespace {{ NameSpace }}
 	/// <summary>
 	/// Auto Generate for Tab File: {{ file.TabFilePath }}
 	/// </summary>
-	public partial class {{file.ClassName}}Config : TabRow
+	public partial class {{file.ClassName}}Info : TableRowInfo
 	{
 		public static readonly string TabFilePath = "{{ file.TabFilePath }}";
+		
+		public override bool IsAutoParse { get { return false; } }
+
 		{% for field in file.Fields %}
-		[TabColumnAttribute]
 		public {{ field.Type }} {{ field.Name}} { get; internal set; }  // {{ field.Comment }}
 		{% endfor %}
 
